@@ -1,40 +1,20 @@
 pragma solidity ^0.5.1;
 
-contract Etherotto {
+import "./token/ETR.sol";
 
-    /**
-     * 유저 구조체
+contract Etherotto is Ownable {
+    
+    /** 
+     * 토큰 기준 가치
+     * 1000 : 1ETH = 1000ETR
      */
-    struct User {
+    uint16 public constant TOKEN_VALUE = 1000;
 
-        uint256 tokenBalance;
-        uint256 subscribeSince;
-        uint256 subscribeTo;
-
-    }
-
-    /**
-     * 캐비닛 구조체
+    /** 
+     * 토큰 배당금 비율
+     * 100: 10%
      */
-    struct Cabinet {
-
-        address ownerAddress;
-        uint256 numberOfTickets;
-
-        Ticket[] ticketList;
-
-    }
-
-    /**
-     * 복권 구조체
-     */
-    struct Ticket {
-
-        uint256 timestamp;
-        
-        uint8[] electronList;
-        
-    }
+    uint16 public constant TOKEN_DIVIDENDS_RATIO = 100;
 
     /** 
      * 복권 가격
@@ -55,16 +35,10 @@ contract Etherotto {
      */
     uint8 constant DAY_OF_DRAWING = 6;
 
-    /** 
-     * 토큰 배당금 비율
-     * 100: 10%
-     */
-    uint16 constant TOKEN_DIVIDENDS_RATIO = 100;
-
     /**
-     * 계약 토큰 잔액
+     * Etherotto Token
      */
-    uint256 tokenBalance;
+    ETR private token;
 
     /**
      * 유저 목록
@@ -76,33 +50,66 @@ contract Etherotto {
      */
     mapping(address => Cabinet) public cabinetList;
 
-    event ExchangeTo(address indexed from, address indexed to, uint256 amount, string symbol);
+    /**
+     * 정기 결제 구독자 목록
+     */
+    mapping(uint256 => address) public subscriberList;
+
+    /**
+     * 이벤트
+     */
     event BuyTicket(address indexed who);
     event Subscribe(address indexed who, uint256 since, uint256 to);
     event Unsubscribe(address indexed who, uint256 since);
     event DrawTicket(uint256 timestamp);
 
     /**
-     * 계약 소유자 함수 제한자
+     * 유저 구조체
      */
-    modifier onlyOwner {
-        if (msg.sender != owner)
-            revert();
-        _;
+    struct User {
+
+        address ownerAddress;
+        uint256 subscribeSince;
+        uint256 subscribeTo;
+
     }
 
     /**
-     * ETH를 ETR 토큰으로 환전
+     * 캐비닛 구조체
      */
-    function exchangeToETR(uint256 _amount) public payable {
+    struct Cabinet {
+
+        address ownerAddress;
+        uint256 numberOfTickets;
+
+        mapping(uint256 => Ticket) ticketList;
+
+    }
+
+    /**
+     * 복권 구조체
+     */
+    struct Ticket {
+
+        uint256 timestamp;
+        
+        mapping(uint8 => uint8) electronList;
         
     }
 
     /**
-     * ETR 토큰을 ETH으로 환전
+     * 계약 생성자
      */
-    function exchangeToETH(uint256 _amount) public {
-        
+    constructor (uint256 _tokenInitAmount) Ownable() public payable {
+        require((msg.value * TOKEN_VALUE) == _tokenInitAmount);
+        token = new ETR(_tokenInitAmount, TOKEN_VALUE, TOKEN_DIVIDENDS_RATIO);
+    }
+
+    /**
+     * Fallback 메서드
+     */
+    function () external payable {
+        revert();
     }
 
     /**
@@ -136,8 +143,8 @@ contract Etherotto {
     /**
      * 내 정보 조회
      */
-    function getMyInfo() public returns(User user, Cabinet cabinet) {
-
+    function getMyInfo() public returns(string memory user, string memory cabinet) {
+        //return (string(abi.encode(userList[msg.sender])), cabinetList[msg.sender]);
     }
 
     /**
