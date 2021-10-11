@@ -132,7 +132,7 @@ contract Etherotto is Ownable {
         cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].timestamp = now;
 
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[i] = _electrons[i];  
+            cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[idx] = _electrons[idx];  
         }
     }
 
