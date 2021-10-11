@@ -24,7 +24,7 @@ contract Etherotto is Ownable {
 
     /** 
      * 복권 당첨 번호 수
-     * 번호 6개 + 보너스 1개(고정/필수)
+     * 1~45 번호 6개 + 보너스 1개(고정/필수)
      */
     uint8 constant TICKET_ELECTRONS = 7;
 
@@ -152,6 +152,10 @@ contract Etherotto is Ownable {
      */
     function drawTickets() public onlyOwner {
 
+    }
+
+    function generateRandomElectron() private view returns(uint) {
+        return (uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1;
     }
 
 }
