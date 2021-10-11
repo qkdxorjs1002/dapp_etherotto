@@ -142,7 +142,7 @@ contract Etherotto is Ownable {
     function subscribe(uint256 month) public {
         require(month >= 1);
 
-        if (userList[msg.sender].subscriberIndex == 0) {
+        if (userList[msg.sender].subscribeSince == 0) {
             userList[msg.sender] = User({
                 subscriberIndex: ++numberOfSubscribers,
                 subscribeSince: now,
