@@ -36,9 +36,19 @@ contract Etherotto is Ownable {
     uint8 constant DAY_OF_DRAWING = 6;
 
     /**
+     * 한 달을 초로 환산
+     */
+    uint32 constant SECONDS_OF_MONTH = 2629746;
+
+    /**
      * Etherotto Token
      */
     ETR private token;
+
+    /**
+     * 구독자 수
+     */
+    uin256 private numberOfSubscribers;
 
     /**
      * 유저 목록
@@ -130,7 +140,20 @@ contract Etherotto is Ownable {
      * 정기 결제 구독 가입
      */
     function subscribe(uint256 month) public {
-        
+        require(month >= 1);
+
+        if (userList[msg.sender].ownerAddress == address(0x0)) {
+            userList[msg.sender] = User({
+                ownerAddress: msg.sender,
+                subscribeSince: now,
+                subscribeTo: now + (SECONDS_OF_MONTH * month)
+            });
+            subscriberList
+        } else if (userList[msg.sender].ownerAddress == msg.sender) {
+            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * month);
+        } else {
+            revert();
+        }
     }
 
     /**
