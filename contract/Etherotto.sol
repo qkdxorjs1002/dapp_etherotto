@@ -132,8 +132,18 @@ contract Etherotto is Ownable {
     /**
      * 복권 구매
      */
-    function buyTicket() public {
-        
+    function buyTicket(uint8[] _electrons) public payable{
+        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
+            require(_electrons[i] <= 45);
+        }
+
+        cabinetList[msg.sender].ownerAddress = msg.sender;
+        cabinetList[msg.sender].numberOfTickets += 1;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].timestamp = now;
+
+        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
+            cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[idx] = _electrons[idx];  
+        }
     }
 
     /**
