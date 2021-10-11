@@ -158,7 +158,9 @@ contract Etherotto is Ownable {
      * 정기 결제 구독 해제
      */
     function unsubscribe() public {
-
+        delete subscriberList[userList[msg.sender].subscriberIndex];
+        delete userList[msg.sender];
+        numberOfSubscribers--;
     }
 
     /**
