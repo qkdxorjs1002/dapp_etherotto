@@ -48,7 +48,7 @@ contract Etherotto is Ownable {
     /**
      * 구독자 수
      */
-    uin256 private numberOfSubscribers;
+    uint256 private numberOfSubscribers;
 
     /**
      * 유저 목록
@@ -78,7 +78,7 @@ contract Etherotto is Ownable {
      */
     struct User {
 
-        address ownerAddress;
+        uint256 subscriberIndex;
         uint256 subscribeSince;
         uint256 subscribeTo;
 
@@ -142,17 +142,15 @@ contract Etherotto is Ownable {
     function subscribe(uint256 month) public {
         require(month >= 1);
 
-        if (userList[msg.sender].ownerAddress == address(0x0)) {
+        if (userList[msg.sender].subscriberIndex == 0) {
             userList[msg.sender] = User({
-                ownerAddress: msg.sender,
+                subscriberIndex: ++numberOfSubscribers,
                 subscribeSince: now,
                 subscribeTo: now + (SECONDS_OF_MONTH * month)
             });
-            subscriberList
-        } else if (userList[msg.sender].ownerAddress == msg.sender) {
-            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * month);
+            subscriberList[userList[msg.sender].subscriberIndex] = msg.sender;
         } else {
-            revert();
+            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * month);
         }
     }
 
