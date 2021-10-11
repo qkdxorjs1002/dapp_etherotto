@@ -102,7 +102,7 @@ contract Etherotto is Ownable {
     struct Ticket {
 
         uint256 timestamp;
-        
+
         mapping(uint8 => uint8) electronList;
         
     }
@@ -139,18 +139,18 @@ contract Etherotto is Ownable {
     /**
      * 정기 결제 구독 가입
      */
-    function subscribe(uint256 month) public {
-        require(month >= 1);
+    function subscribe(uint256 _month) public {
+        require(_month >= 1);
 
         if (userList[msg.sender].subscribeSince == 0) {
             userList[msg.sender] = User({
                 subscriberIndex: ++numberOfSubscribers,
                 subscribeSince: now,
-                subscribeTo: now + (SECONDS_OF_MONTH * month)
+                subscribeTo: now + (SECONDS_OF_MONTH * _month)
             });
             subscriberList[userList[msg.sender].subscriberIndex] = msg.sender;
         } else {
-            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * month);
+            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * _month);
         }
     }
 
@@ -166,8 +166,12 @@ contract Etherotto is Ownable {
     /**
      * 내 정보 조회
      */
-    function getMyInfo() public returns(string memory user, string memory cabinet) {
-        //return (string(abi.encode(userList[msg.sender])), cabinetList[msg.sender]);
+    function getMyInfo() public view returns(string memory) {
+        return (string(abi.encodePacked(
+            userToJson(userList[msg.sender]),
+            ", ",
+            cabinetToJson(userList[msg.sender].subscriberIndex, cabinetList[msg.sender])
+        )));
     }
 
     /**
@@ -179,6 +183,39 @@ contract Etherotto is Ownable {
 
     function generateRandomElectron() private view returns(uint) {
         return (uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1;
+    }
+
+    function userToJson(User storage _target) private view returns(string memory) {
+        return string(abi.encodePacked("{",
+            "\"index\": ", _target.subscriberIndex, ", ",
+            "\"since\": ", _target.subscribeSince, ", ",
+            "\"to\": ", _target.subscribeTo,
+        "}"));
+    }
+    
+    function cabinetToJson(uint256 _targetIndex, Cabinet storage _target) private view returns(string memory) {
+        return string(abi.encodePacked("{",
+            "\"numberOfTickets\": ", _target.numberOfTickets, ", ",
+            "\"tickets\": ", ticketToJson(_target.ticketList[_targetIndex]), ", ",
+        "}"));
+    }
+    
+    function ticketToJson(Ticket storage _target) private view returns(string memory) {
+        string memory jsonArray = "[";
+    
+        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
+            jsonArray = string(abi.encodePacked(jsonArray, _target.electronList[idx]));
+            if (idx < TICKET_ELECTRONS - 1) {
+                jsonArray = string(abi.encodePacked(jsonArray, ", "));
+            }
+        }
+
+        jsonArray = string(abi.encodePacked(jsonArray, "]"));
+
+        return string(abi.encodePacked("{",
+            "\"timestamp\": ", _target.timestamp, ", ",
+            "\"electrons\": ", jsonArray, ", ",
+        "}"));
     }
 
 }
