@@ -122,8 +122,20 @@ contract Etherotto is Ownable {
     /**
      * 복권 구매
      */
-    function buyTicket() public {
+    function buyTicket(uint8 _electrons1, uint8 _electrons2, uint8 _electrons3, uint8 _electrons4, uint8 _electrons5, uint8 _electrons6, uint8 _electrons7) public payable{
+        require(_electrons1 < 46 && _electrons2 < 46 && _electrons3 < 46 && _electrons4 < 46 && _electrons5 < 46 && _electrons6 < 46 && _electrons7 < 46);
         
+        token.transfer(address(this), TICKET_PRICE);
+        cabinetList[msg.sender].ownerAddress = msg.sender;
+        cabinetList[msg.sender].numberOfTickets += 1;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].timestamp = now;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[0] = _electrons1;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[1] = _electrons2;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[2] = _electrons3;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[3] = _electrons4;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[4] = _electrons5;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[5] = _electrons6;
+        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[6] = _electrons7;
     }
 
     /**
