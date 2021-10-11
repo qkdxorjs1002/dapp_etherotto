@@ -214,7 +214,7 @@ contract Etherotto is Ownable {
             if (userList[userAddress].subscribeTo < now) { 
                 unsubscribe(userAddress);
             } else {
-                // unsubscribe 처럼 오버로딩해서 address 지정 가능하도록
+                // TODO: unsubscribe 처럼 오버로딩해서 address 지정 가능하도록
                 buyTicketAuto();
             }
         }
