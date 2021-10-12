@@ -161,12 +161,15 @@ contract Etherotto is Ownable {
             require(_electrons[idx] <= 45);
         }
 
-        cabinetList[msg.sender].ownerAddress = msg.sender;
-        cabinetList[msg.sender].numberOfTickets += 1;
-        cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].timestamp = now;
+        uint256 cabinetIndex = userList[msg.sender].cabinetIndex;
+        uint256 ticketIndex = cabinetList[cabinetIndex].numberOfTickets;
+
+        cabinetList[cabinetIndex].ownerAddress = msg.sender;
+        cabinetList[cabinetIndex].numberOfTickets++;
+        cabinetList[cabinetIndex].ticketList[ticketIndex].timestamp = now;
 
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            cabinetList[msg.sender].ticketList[cabinetList[msg.sender].numberOfTickets].electronList[idx] = _electrons[idx];  
+            cabinetList[cabinetIndex].ticketList[ticketIndex].electronList[idx] = _electrons[idx];  
         }
     }
 
