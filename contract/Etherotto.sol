@@ -198,8 +198,12 @@ contract Etherotto is Ownable {
     }
     
     function unsubscribe(address _address) private {
+        require(userList[_address].subscribeSince > 0);
+
         delete subscriberList[userList[_address].subscriberIndex];
-        delete userList[_address];
+        delete userList[_address].subscriberIndex;
+        delete userList[_address].subscribeSince;
+        delete userList[_address].subscribeTo;
         numberOfSubscribers--;
     }
 
@@ -207,6 +211,8 @@ contract Etherotto is Ownable {
      * 내 정보 조회
      */
     function getMyInfo() public view returns(string memory) {
+        require(userList[msg.sender].timestamp > 0);
+
         return (string(abi.encodePacked(
             userToJson(userList[msg.sender]),
             ", ",
