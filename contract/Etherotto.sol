@@ -68,6 +68,11 @@ contract Etherotto is Ownable {
     uint256 private numberOfSubscribers;
 
     /**
+     * 캐비넷 수
+     */
+    uint256 private numberOfCabinets;
+
+    /**
      * 유저 목록
      */
     mapping(address => User) public userList;
@@ -75,8 +80,8 @@ contract Etherotto is Ownable {
     /**
      * 캐비닛 목록
      */
-    mapping(address => Cabinet) public cabinetList;
-
+    mapping(uint256 => Cabinet) public cabinetList;
+    
     /**
      * 정기 결제 구독자 목록
      */
@@ -95,9 +100,11 @@ contract Etherotto is Ownable {
      */
     struct User {
 
+        uint256 cabinetIndex;
         uint256 subscriberIndex;
         uint256 subscribeSince;
         uint256 subscribeTo;
+        uint256 timestamp;
 
     }
 
@@ -159,12 +166,15 @@ contract Etherotto is Ownable {
     function subscribe(uint256 _month) public {
         require(_month >= 1);
 
-        if (userList[msg.sender].subscribeSince == 0) {
+        if (userList[msg.sender].timestamp == 0) {
             userList[msg.sender] = User({
+                cabinetIndex: ++numberOfCabinets,
                 subscriberIndex: ++numberOfSubscribers,
                 subscribeSince: now,
-                subscribeTo: now + (SECONDS_OF_MONTH * _month)
+                subscribeTo: now + (SECONDS_OF_MONTH * _month),
+                timestamp: now
             });
+            cabinetList[userList[msg.sender].cabinetIndex].ownerAddress = msg.sender;
             subscriberList[userList[msg.sender].subscriberIndex] = msg.sender;
         } else {
             userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * _month);
@@ -191,7 +201,7 @@ contract Etherotto is Ownable {
         return (string(abi.encodePacked(
             userToJson(userList[msg.sender]),
             ", ",
-            cabinetToJson(userList[msg.sender].subscriberIndex, cabinetList[msg.sender])
+            cabinetToJson(cabinetList[userList[msg.sender].cabinetIndex])
         )));
     }
 
@@ -230,16 +240,31 @@ contract Etherotto is Ownable {
 
     function userToJson(User storage _target) private view returns(string memory) {
         return string(abi.encodePacked("{",
-            "\"index\": ", _target.subscriberIndex, ", ",
+            "\"cabIndex\": ", _target.cabinetIndex, ", ",
+            "\"subIndex\": ", _target.subscriberIndex, ", ",
             "\"since\": ", _target.subscribeSince, ", ",
             "\"to\": ", _target.subscribeTo,
+            "\"timestamp\": ", _target.timestamp,
         "}"));
     }
     
-    function cabinetToJson(uint256 _targetIndex, Cabinet storage _target) private view returns(string memory) {
+    function cabinetToJson(Cabinet storage _target) private view returns(string memory) {
+        string memory jsonArray = "[";
+    
+        for (uint8 idx = 0; idx < _target.numberOfTickets; idx++) {
+            jsonArray = string(abi.encodePacked(jsonArray, ticketToJson(_target.ticketList[idx])));
+
+            if (idx < TICKET_ELECTRONS - 1) {
+                jsonArray = string(abi.encodePacked(jsonArray, ", "));
+            }
+        }
+
+        jsonArray = string(abi.encodePacked(jsonArray, "]"));
+
         return string(abi.encodePacked("{",
-            "\"numberOfTickets\": ", _target.numberOfTickets, ", ",
-            "\"tickets\": ", ticketToJson(_target.ticketList[_targetIndex]), ", ",
+            "\"ownerAddress\": ", _target.ownerAddress, ", ",
+            "\"numOfTickets\": ", _target.numberOfTickets, ", ",
+            "\"tickets\": ", jsonArray, ", ",
         "}"));
     }
     
