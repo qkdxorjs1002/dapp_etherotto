@@ -163,7 +163,7 @@ contract Etherotto is Ownable {
     /**
      * 자동 복권 구매
      */
-    function buyTicketAuto() public register{
+    function buyTicketAuto() public register {
         token.transfer(address(this), TICKET_PRICE);
         totalToken = totalToken + TICKET_PRICE;
 
