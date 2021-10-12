@@ -139,6 +139,20 @@ contract Etherotto is Ownable {
         token = new ETR(_tokenInitAmount, TOKEN_VALUE, TOKEN_DIVIDENDS_RATIO);
     }
 
+    modifier register() {
+        if (userList[msg.sender].timestamp == 0) {
+            userList[msg.sender] = User({
+                cabinetIndex: numberOfCabinets++,
+                subscriberIndex: 0,
+                subscribeSince: 0,
+                subscribeTo: 0,
+                timestamp: now
+            });
+            cabinetList[userList[msg.sender].cabinetIndex].ownerAddress = msg.sender;
+        }
+        _;
+    }
+
     /**
      * Fallback 메서드
      */
@@ -163,18 +177,13 @@ contract Etherotto is Ownable {
     /**
      * 정기 결제 구독 가입
      */
-    function subscribe(uint256 _month) public {
+    function subscribe(uint256 _month) public register {
         require(_month >= 1);
 
-        if (userList[msg.sender].timestamp == 0) {
-            userList[msg.sender] = User({
-                cabinetIndex: ++numberOfCabinets,
-                subscriberIndex: ++numberOfSubscribers,
-                subscribeSince: now,
-                subscribeTo: now + (SECONDS_OF_MONTH * _month),
-                timestamp: now
-            });
-            cabinetList[userList[msg.sender].cabinetIndex].ownerAddress = msg.sender;
+        if (userList[msg.sender].subscribeSince == 0) {
+            userList[msg.sender].subscriberIndex = numberOfSubscribers++;
+            userList[msg.sender].subscribeSince = now;
+            userList[msg.sender].subscribeTo = now + (SECONDS_OF_MONTH * _month);
             subscriberList[userList[msg.sender].subscriberIndex] = msg.sender;
         } else {
             userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * _month);
