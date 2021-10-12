@@ -322,13 +322,13 @@ contract Etherotto is Ownable {
             }
         }
 
-        roundList[numberOfRounds++] = Round({
+        roundList[numberOfRounds] = Round({
             totalTokens: totalTokens,
             totalTickets: totalTickets,
             rewards: drawerRewards
         });
 
-        delete totalTokens;
+        resetRound();
     }
 
     function drawTicket(Ticket storage _ticket, uint8[] memory _drawElectrons) private view returns(uint8) {
@@ -402,6 +402,17 @@ contract Etherotto is Ownable {
             }
         }
         return electrons;
+    }
+
+    function resetRound() private {
+        delete totalTokens;
+        for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
+            delete cabinetList[idx].numberOfTickets;
+            for (uint256 tdx = 0; tdx < cabinetList[idx].numberOfTickets; tdx++) {
+                delete cabinetList[idx].ticketList[tdx];
+            }
+        }
+        numberOfRounds++;
     }
 
     function generateRandomElectron() private view returns(uint8) {
