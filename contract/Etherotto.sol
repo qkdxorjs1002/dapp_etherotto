@@ -258,6 +258,24 @@ contract Etherotto is Ownable {
         }
     }
 
+    function generateRandomElectrons() private view returns(uint[]) {
+        uint8[] electrons;
+
+        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
+            bool isDup = false;
+            while (isDup) {
+                electrons[idx] = generateRandomElectron();
+                for (uint8 tdx = 0; tdx < idx; tdx++) {
+                    if (electrons[idx] == electrons[tdx]) {
+                        isDup = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return electrons;
+    }
+
     function generateRandomElectron() private view returns(uint) {
         return (uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1;
     }
