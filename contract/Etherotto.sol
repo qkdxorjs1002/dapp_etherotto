@@ -36,9 +36,26 @@ contract Etherotto is Ownable {
     uint8 constant DAY_OF_DRAWING = 6;
 
     /**
+     * 복권 정기 결제 요일
+     * 일요일 시작으로 토요일까지 0~6
+     * 1: 월요일
+     */
+    uint8 constant DAY_OF_PAYMENT = 1;
+
+    /**
      * 한 달을 초로 환산
      */
     uint32 constant SECONDS_OF_MONTH = 2629746;
+
+    /**
+     * 한 주를 초로 환산
+     */
+    uint32 constant SECONDS_OF_WEEK = 604800;
+
+    /**
+     * 하루를 초로 환산
+     */
+    uint32 constant SECONDS_OF_DAY = 86400;
 
     /**
      * Etherotto Token
@@ -158,8 +175,12 @@ contract Etherotto is Ownable {
      * 정기 결제 구독 해제
      */
     function unsubscribe() public {
-        delete subscriberList[userList[msg.sender].subscriberIndex];
-        delete userList[msg.sender];
+        unsubscribe(msg.sender);
+    }
+    
+    function unsubscribe(address _address) private {
+        delete subscriberList[userList[_address].subscriberIndex];
+        delete userList[_address];
         numberOfSubscribers--;
     }
 
@@ -180,9 +201,31 @@ contract Etherotto is Ownable {
     function drawTickets() public onlyOwner {
 
     }
+    
+    /**
+     * 복권 정기 결제 (계약 소유자 제한)
+     */
+    function paySubscribe() public onlyOwner {
+        require(getDayOfWeek(now) == DAY_OF_DRAWING);
+
+        for (uint256 idx = 0; idx < numberOfSubscribers; idx++) {
+            address userAddress = subscriberList[idx];
+
+            if (userList[userAddress].subscribeTo < now) { 
+                unsubscribe(userAddress);
+            } else {
+                // TODO: unsubscribe 처럼 오버로딩해서 address 지정 가능하도록
+                buyTicketAuto();
+            }
+        }
+    }
 
     function generateRandomElectron() private view returns(uint) {
         return (uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1;
+    }
+
+    function getDayOfWeek(uint256 _timestamp) private pure returns(uint256) {
+        return (uint(_timestamp / SECONDS_OF_DAY) + 4) % 7;
     }
 
     function userToJson(User storage _target) private view returns(string memory) {
