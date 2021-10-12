@@ -175,6 +175,8 @@ contract Etherotto is Ownable {
             require(_electrons[idx] <= 45);
         }
 
+        token.transfer(address(this), TICKET_PRICE);
+
         uint256 cabinetIndex = userList[msg.sender].cabinetIndex;
         uint256 ticketIndex = cabinetList[cabinetIndex].numberOfTickets;
 
