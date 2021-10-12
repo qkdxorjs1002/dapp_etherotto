@@ -220,19 +220,7 @@ contract Etherotto is Ownable {
      * 자동 복권 구매
      */
     function buyTicketAuto() public register {
-        token.transfer(address(this), TICKET_PRICE);
-        totalToken = totalToken + TICKET_PRICE;
-
-        uint256 cabinetIndex = userList[msg.sender].cabinetIndex;
-        uint256 ticketIndex = cabinetList[cabinetIndex].numberOfTickets;
-
-        cabinetList[cabinetIndex].ownerAddress = msg.sender;
-        cabinetList[cabinetIndex].numberOfTickets++;
-        cabinetList[cabinetIndex].ticketList[ticketIndex].timestamp = now;
-
-        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            cabinetList[cabinetIndex].ticketList[ticketIndex].electronList[idx] = electrons[idx];  
-        }
+        buyTicket(generateRandomElectrons());
     }
 
     /**
@@ -244,7 +232,7 @@ contract Etherotto is Ownable {
         }
 
         token.transfer(address(this), TICKET_PRICE);
-        totalToken = totalToken + TICKET_PRICE;
+        totalTokens += TICKET_PRICE;
         
         uint256 cabinetIndex = userList[msg.sender].cabinetIndex;
         uint256 ticketIndex = cabinetList[cabinetIndex].numberOfTickets;
