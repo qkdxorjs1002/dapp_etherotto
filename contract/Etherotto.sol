@@ -17,16 +17,46 @@ contract Etherotto is Ownable {
     uint16 public constant TOKEN_DIVIDENDS_RATIO = 100;
 
     /** 
+     * 복권 당첨금 비율
+     */
+    uint32 constant TOKEN_DRAWER_REWARD_RATIO = 80;
+
+    /** 
      * 복권 가격
      * 100: 100토큰
      */
-    uint16 constant TICKET_PRICE = 100;
+    uint16 constant TICKET_PRICE = 10;
 
     /** 
      * 복권 당첨 번호 수
      * 1~45 번호 6개 + 보너스 1개(고정/필수)
      */
     uint8 constant TICKET_ELECTRONS = 7;
+
+    /** 
+     * 복권 1등 당첨금 비율
+     */
+    uint32 constant DRAWER_1REWARD_RATIO = 70;
+    
+    /** 
+     * 복권 2등 당첨금 비율
+     */
+    uint32 constant DRAWER_2REWARD_RATIO = 15;
+
+    /** 
+     * 복권 3등 당첨금 비율
+     */
+    uint32 constant DRAWER_3REWARD_RATIO = 15;
+
+    /** 
+     * 복권 4등 당첨금
+     */
+    uint32 constant DRAWER_4REWARD_TOKEN = 500;
+
+    /** 
+     * 복권 5등 당첨금
+     */
+    uint32 constant DRAWER_5REWARD_TOKEN = 50;
 
     /**
      * 복권 추첨 요일
@@ -63,6 +93,11 @@ contract Etherotto is Ownable {
     ETR private token;
 
     /**
+     * 복권 회차
+     */
+    uint256 private numberOfRounds;
+
+    /**
      * 구독자 수
      */
     uint256 private numberOfSubscribers;
@@ -71,6 +106,16 @@ contract Etherotto is Ownable {
      * 캐비넷 수
      */
     uint256 private numberOfCabinets;
+
+    /**
+     * 해당 회차 총 토큰
+     */
+    uint256 private totalTokens;
+
+    /**
+     * 유저 목록
+     */
+    mapping(uint256 => Round) public roundList;
 
     /**
      * 유저 목록
@@ -94,6 +139,17 @@ contract Etherotto is Ownable {
     event Subscribe(address indexed who, uint256 since, uint256 to);
     event Unsubscribe(address indexed who, uint256 since);
     event DrawTicket(uint256 timestamp);
+
+    /**
+     * 회차 구조체
+     */
+    struct Round {
+
+        uint256 totalTokens;
+        uint256 totalTickets;
+        uint256[5] rewards;
+        
+    }
 
     /**
      * 유저 구조체
@@ -224,14 +280,99 @@ contract Etherotto is Ownable {
      * 복권 추첨 (계약 소유자 제한)
      */
     function drawTickets() public onlyOwner {
+        require(getDayOfWeek(now) == DAY_OF_DRAWING);
 
+        uint8[] memory drawElectrons = generateRandomElectrons();
+        uint256 totalTickets;
+        address[][] memory winners;
+
+        for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
+            address ownerAddress = cabinetList[idx].ownerAddress;
+            uint256 numberOfTickets = cabinetList[idx].numberOfTickets;
+            totalTickets += numberOfTickets;
+
+            for (uint256 tdx = 0; tdx < numberOfTickets; tdx++) {
+                uint8 result = drawTicket(cabinetList[idx].ticketList[tdx], drawElectrons);
+
+                if (result != 0) {
+                    uint8 target = result - 1;
+                    winners[target][winners[target].length] = ownerAddress;
+                }
+            }
+        }
+
+        uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 10);
+        uint256 drawer5thReward = DRAWER_5REWARD_TOKEN * winners[4].length;
+        uint256 drawer4thReward = DRAWER_4REWARD_TOKEN * winners[3].length;
+        drawerReward -= drawer5thReward + drawer4thReward;
+        uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 10);
+        uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 10);
+        uint256 drawer1stReward = drawerReward * (DRAWER_1REWARD_RATIO / 10);
+
+        uint256[5] memory drawerRewards = [
+            drawer1stReward, drawer2ndReward, 
+            drawer3rdReward, drawer4thReward, drawer5thReward
+        ];
+
+        for (uint256 idx = 0; idx < winners.length; idx++) {
+            address[] memory targets = winners[idx];
+            
+            for (uint256 tdx = 0; tdx < targets.length; tdx++) {
+                token.transferFrom(address(this), targets[tdx], drawerRewards[idx]);
+            }
+        }
+
+        roundList[numberOfRounds] = Round({
+            totalTokens: totalTokens,
+            totalTickets: totalTickets,
+            rewards: drawerRewards
+        });
+
+        resetRound();
+    }
+
+    function drawTicket(Ticket storage _ticket, uint8[] memory _drawElectrons) private view returns(uint8) {
+        mapping(uint8 => uint8) storage electronList = _ticket.electronList;
+
+        uint8 matched;
+        bool hasBonusNum = false;
+        for (uint8 edx = 0; edx < TICKET_ELECTRONS; edx++) {
+            for (uint ddx = 0; ddx < TICKET_ELECTRONS; ddx++) {
+                if (electronList[edx] == _drawElectrons[ddx]) {
+                    if (ddx == TICKET_ELECTRONS) {
+                        hasBonusNum == true;
+                    }
+                    matched++;
+                    break;
+                }
+            }
+        }
+
+        if (matched == 3 && !hasBonusNum) {
+            // 5등
+            return 5;
+        } else if (matched == 4 && !hasBonusNum) {
+            // 4등
+            return 4;
+        } else if (matched == 5 && !hasBonusNum) {
+            // 3등   
+            return 3;
+        } else if (matched == 6 && hasBonusNum) {
+            // 2등
+            return 2;
+        } else if (matched >= 6) {
+            // 1등
+            return 1;
+        }
+
+        return 0;
     }
     
     /**
      * 복권 정기 결제 (계약 소유자 제한)
      */
     function paySubscribe() public onlyOwner {
-        require(getDayOfWeek(now) == DAY_OF_DRAWING);
+        require(getDayOfWeek(now) == DAY_OF_PAYMENT);
 
         for (uint256 idx = 0; idx < numberOfSubscribers; idx++) {
             address userAddress = subscriberList[idx];
@@ -245,8 +386,8 @@ contract Etherotto is Ownable {
         }
     }
 
-    function generateRandomElectrons() private view returns(uint[]) {
-        uint8[] electrons;
+    function generateRandomElectrons() private view returns(uint8[] memory) {
+        uint8[] memory electrons;
 
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
             bool isDup = false;
@@ -263,8 +404,19 @@ contract Etherotto is Ownable {
         return electrons;
     }
 
-    function generateRandomElectron() private view returns(uint) {
-        return (uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1;
+    function resetRound() private {
+        delete totalTokens;
+        for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
+            delete cabinetList[idx].numberOfTickets;
+            for (uint256 tdx = 0; tdx < cabinetList[idx].numberOfTickets; tdx++) {
+                delete cabinetList[idx].ticketList[tdx];
+            }
+        }
+        numberOfRounds++;
+    }
+
+    function generateRandomElectron() private view returns(uint8) {
+        return uint8((uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1);
     }
 
     function getDayOfWeek(uint256 _timestamp) private pure returns(uint256) {
