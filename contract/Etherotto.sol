@@ -170,7 +170,7 @@ contract Etherotto is Ownable {
     /**
      * 복권 구매
      */
-    function buyTicket(uint8[] memory _electrons) public payable{
+    function buyTicket(uint8[] memory _electrons) public register {
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
             require(_electrons[idx] <= 45);
         }
