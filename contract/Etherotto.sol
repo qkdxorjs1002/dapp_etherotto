@@ -69,17 +69,17 @@ contract Etherotto is Ownable, EtherottoConfig {
         token.transfer(address(this), _tokenInitAmount);
     }
 
-    modifier register() {
-        if (Object.isEmpty(address(userList[msg.sender]))) {
-            userList[msg.sender] = new User(
-                numberOfCabinets++,
+    modifier register(address _address) {
+        if (Object.isEmpty(address(userList[_address]))) {
+            userList[_address] = new User(
+                numberOfCabinets,
                 0,
                 0,
                 0,
                 uint256(now)
             );
-            cabinetList[userList[msg.sender].getCabinetIndex()] = new Cabinet(
-                msg.sender,
+            cabinetList[numberOfCabinets++] = new Cabinet(
+                _address,
                 0
             );
         }
@@ -100,18 +100,18 @@ contract Etherotto is Ownable, EtherottoConfig {
         buyTicket(generateRandomElectrons());
     }
 
-    function buyTicketAuto(address _target) private register {
+    function buyTicketAuto(address _target) private register(_target) {
         buyTicket(_target, generateRandomElectrons());
     }
 
     /**
      * 수동 복권 구매
      */
-    function buyTicket(uint8[] memory _electrons) public register {
+    function buyTicket(uint8[] memory _electrons) public {
         buyTicket(msg.sender, _electrons);
     }
     
-    function buyTicket(address _target, uint8[] memory _electrons) private register {
+    function buyTicket(address _target, uint8[] memory _electrons) private register(_target) {
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
             require(_electrons[idx] <= 45);
         }
@@ -120,22 +120,17 @@ contract Etherotto is Ownable, EtherottoConfig {
         totalTokens += TICKET_PRICE;
         
         uint256 cabinetIndex = userList[_target].getCabinetIndex();
-        uint256 ticketIndex = cabinetList[cabinetIndex].getNumberOfTickets();
 
-        cabinetList[cabinetIndex].setOwnerAddress(_target);
-        cabinetList[cabinetIndex].setNumberOfTickets(cabinetList[cabinetIndex].getNumberOfTickets() + 1);
+        Ticket ticket = new Ticket(uint256(now));
+        ticket.setElectrons(_electrons);
 
-        Ticket[] memory ticketList = cabinetList[cabinetIndex].getTicketList();
-        ticketList[ticketIndex].setTimestamp(uint256(now));
-        ticketList[ticketIndex].setElectrons(_electrons);
-
-        cabinetList[cabinetIndex].setTicketList(ticketList);
+        cabinetList[cabinetIndex].addTicket(ticket);
     }
 
     /**
      * 정기 결제 구독 가입
      */
-    function subscribe(uint256 _month) public register {
+    function subscribe(uint256 _month) public register(msg.sender) {
         require(_month >= 1);
 
         if (userList[msg.sender].getSubscribeSince() == 0) {
@@ -156,27 +151,34 @@ contract Etherotto is Ownable, EtherottoConfig {
     }
     
     function unsubscribe(address _address) private {
-        require(userList[_address].getSubscribeSince() > 0);
+        require(!Object.isEmpty(address(userList[_address])));
 
-        subscriberList[userList[_address].getSubscriberIndex()] = address(0x0);
-        userList[_address].setSubscriberIndex(0x0);
-        userList[_address].setSubscribeSince(0x0);
-        userList[_address].setSubscribeTo(0x0);
+        delete subscriberList[userList[_address].getSubscriberIndex()];
+        
+        User user = new User(
+            userList[_address].getCabinetIndex(),
+            0,
+            0,
+            0,
+            userList[_address].getTimestamp()
+        );
+        
+        userList[_address] = user;
         numberOfSubscribers--;
     }
 
     /**
      * 내 정보 조회
      */
-    function getMyInfo() public view returns(string memory) {
-        require(userList[msg.sender].getTimestamp() > 0);
+    // function getMyInfo() public view returns(string memory) {
+    //     require(userList[msg.sender].getTimestamp() > 0);
 
-        return string(abi.encodePacked("{",
-            "\"user\": ", userList[msg.sender].toJson(),
-            ", ",
-            "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
-        "}"));
-    }
+    //     return string(abi.encodePacked("{",
+    //         "\"user\": ", userList[msg.sender].toJson(),
+    //         ", ",
+    //         "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
+    //     "}"));
+    // }
 
     /**
      * 복권 추첨 (계약 소유자 제한)
@@ -313,11 +315,7 @@ contract Etherotto is Ownable, EtherottoConfig {
         delete totalTokens;
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
             cabinetList[idx].setNumberOfTickets(0x0);
-            for (uint256 tdx = 0; tdx < cabinetList[idx].getNumberOfTickets(); tdx++) {
-                Ticket[] memory ticketList = cabinetList[idx].getTicketList();
-                delete ticketList[tdx];
-                cabinetList[idx].setTicketList(ticketList);
-            }
+            cabinetList[idx].delTicketList();
         }
         numberOfRounds++;
     }
