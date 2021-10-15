@@ -3,9 +3,9 @@ pragma solidity ^0.5.1;
 import "./EtherottoConfig.sol";
 import "../library/EtherottoLibrary.sol";
 
-// interface JsonConvertable {
-//     function toJson() external view returns(string memory);
-// }
+interface JsonConvertable {
+    function toJson() external view returns(string memory);
+}
 
 /**
  * 회차
@@ -110,21 +110,19 @@ contract User {
         timestamp = _timestamp;
     }
 
-    // function toJson() public view returns(string memory) {
-    //     return string(abi.encodePacked("{",
-    //         "\"cabIndex\": ", cabinetIndex, ", ",
-    //         "\"subIndex\": ", subscriberIndex, ", ",
-    //         "\"since\": ", subscribeSince, ", ",
-    //         "\"to\": ", subscribeTo,
-    //         "\"timestamp\": ", timestamp,
-    //     "}"));
-    // }
+    function toJson() public view returns(string memory) {
+        return string(abi.encodePacked("{",
+            "\"since\": ", Object.uint2str(subscribeSince), ", ",
+            "\"to\": ", Object.uint2str(subscribeTo), ", ",
+            "\"timestamp\": ", Object.uint2str(timestamp),
+        "}"));
+    }
 }
 
 /**
  * 캐비닛
  */
-contract Cabinet is EtherottoConfig {
+contract Cabinet is EtherottoConfig, JsonConvertable {
     
     address private ownerAddress;
     uint256 private numberOfTickets;
@@ -157,46 +155,45 @@ contract Cabinet is EtherottoConfig {
     }
 
     function addTicket(Ticket _ticket) public {
-        ticketList[numberOfTickets++] = _ticket;
+        numberOfTickets++;
+        ticketList.push(_ticket);
     }
 
     function delTicketList() public {
         delete ticketList;
     }
 
-    // function toJson() public view returns(string memory) {
-    //     if (ticketList.length == 0) {
-    //         return "";
-    //     }
+    function toJson() public view returns(string memory) {
+        if (ticketList.length == 0) {
+            return "";
+        }
 
-    //     string memory jsonArray = "[";
+        string memory jsonArray = "[";
     
-    //     for (uint8 idx = 0; idx < numberOfTickets; idx++) {
-    //         jsonArray = string(abi.encodePacked(jsonArray, ticketList[idx].toJson()));
+        for (uint8 idx = 0; idx < ticketList.length; idx++) {
+            jsonArray = string(abi.encodePacked(jsonArray, ticketList[idx].toJson()));
 
-    //         if (idx < TICKET_ELECTRONS - 1) {
-    //             jsonArray = string(abi.encodePacked(jsonArray, ", "));
-    //         }
-    //     }
+            if (idx < ticketList.length - 1) {
+                jsonArray = string(abi.encodePacked(jsonArray, ", "));
+            }
+        }
 
-    //     jsonArray = string(abi.encodePacked(jsonArray, "]"));
+        jsonArray = string(abi.encodePacked(jsonArray, "]"));
 
-    //     return string(abi.encodePacked("{",
-    //         "\"ownerAddress\": ", ownerAddress, ", ",
-    //         "\"numOfTickets\": ", numberOfTickets, ", ",
-    //         "\"tickets\": ", jsonArray, ", ",
-    //     "}"));
-    // }
+        return string(abi.encodePacked("{",
+            "\"tickets\": ", jsonArray,
+        "}"));
+    }
 }
 
 /**
  * 복권
  */
-contract Ticket is EtherottoConfig {
+contract Ticket is EtherottoConfig, JsonConvertable {
 
     uint256 private timestamp;
 
-    uint8[] private electrons;
+    uint8[TICKET_ELECTRONS] private electrons;
 
     constructor (uint256 _timestamp) public {
         timestamp = _timestamp;
@@ -210,33 +207,33 @@ contract Ticket is EtherottoConfig {
         timestamp = _timestamp;
     }
     
-    function getElectrons() public view returns(uint8[] memory) {
+    function getElectrons() public view returns(uint8[TICKET_ELECTRONS] memory) {
         return electrons;
     }
 
-    function setElectrons(uint8[] memory _electrons) public {
+    function setElectrons(uint8[TICKET_ELECTRONS] memory _electrons) public {
         electrons = _electrons;
     }
 
-    // function toJson() public view returns(string memory) {
-    //     if (electrons.length == 0) {
-    //         return "";
-    //     }
+    function toJson() public view returns(string memory) {
+        if (electrons.length == 0) {
+            return "";
+        }
 
-    //     string memory jsonArray = "[";
+        string memory jsonArray = "[";
     
-    //     for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-    //         jsonArray = string(abi.encodePacked(jsonArray, electrons[idx]));
-    //         if (idx < TICKET_ELECTRONS - 1) {
-    //             jsonArray = string(abi.encodePacked(jsonArray, ", "));
-    //         }
-    //     }
+        for (uint8 idx = 0; idx < electrons.length; idx++) {
+            jsonArray = string(abi.encodePacked(jsonArray, Object.uint2str(electrons[idx])));
+            if (idx < electrons.length - 1) {
+                jsonArray = string(abi.encodePacked(jsonArray, ", "));
+            }
+        }
 
-    //     jsonArray = string(abi.encodePacked(jsonArray, "]"));
+        jsonArray = string(abi.encodePacked(jsonArray, "]"));
 
-    //     return string(abi.encodePacked("{",
-    //         "\"timestamp\": ", timestamp, ", ",
-    //         "\"electrons\": ", jsonArray, ", ",
-    //     "}"));
-    // }
+        return string(abi.encodePacked("{",
+            "\"timestamp\": ", Object.uint2str(timestamp), ", ",
+            "\"electrons\": ", jsonArray,
+        "}"));
+    }
 }
