@@ -3,11 +3,10 @@ pragma solidity ^0.5.1;
 contract EtherottoConfig {
     
     /** 
-     * 토큰 기준 가치 / 배당금 비율
+     * 토큰 기준 가치
      * 1000 : 1ETH = 1000ETR
      */
     uint16 public constant TOKEN_VALUE = 1000;
-    uint16 public constant TOKEN_DIVIDENDS_RATIO = 100;
 
     /** 
      * 복권 가격

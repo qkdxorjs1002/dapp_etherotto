@@ -32,15 +32,15 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     uint256 private totalTokens;
     
-    /**
-     * 해당 회차 수상자 수
-     */
-    uint256[5] private numberOfWinners;
+    // /**
+    //  * 해당 회차 수상자 수
+    //  */
+    // mapping(uint8 => uint256) private numberOfWinners;
     
-    /**
-     * 해당 회차 수상자
-     */
-    mapping(uint8 => mapping(uint256 => address)) private winners;
+    // /**
+    //  * 해당 회차 수상자
+    //  */
+    // mapping(uint8 => mapping(uint256 => address)) private winners;
 
     /**
      * 유저 목록
@@ -75,7 +75,7 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     constructor (uint256 _tokenInitAmount) Ownable() public payable {
         require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenInitAmount);
-        token = new ETR(_tokenInitAmount + (TOKEN_VALUE * 1), TOKEN_VALUE, TOKEN_DIVIDENDS_RATIO);
+        token = new ETR(_tokenInitAmount + (TOKEN_VALUE * 1), TOKEN_VALUE);
         token.transfer(address(this), _tokenInitAmount);
     }
 
@@ -184,8 +184,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         require(userList[msg.sender].getTimestamp() > 0);
 
         return string(abi.encodePacked("{",
-            "\"user\": ", userList[msg.sender].toJson(),
-            ", ",
+            "\"user\": ", userList[msg.sender].toJson(), ", ",
+            "\"tokens\": ", Object.uint2str(token.getTokenBalance()), ", ",
             "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
         "}"));
     }
@@ -195,7 +195,7 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     function drawTickets() public onlyOwner {
         //require(Date.getDayOfWeek(uint256(now)) == DAY_OF_DRAWING);
-        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO: 시발 여기 memory 2d array 좀 어떻게 해줘
+        
         uint8[TICKET_ELECTRONS] memory drawElectrons = [1,2,3,4,5,6,7];
         uint256 totalTickets;
 
@@ -284,7 +284,7 @@ contract Etherotto is Ownable, EtherottoConfig {
      * 복권 정기 결제 (계약 소유자 제한)
      */
     function paySubscribe() public onlyOwner {
-        //require(Date.getDayOfWeek(now) == DAY_OF_PAYMENT);
+        require(Date.getDayOfWeek(now) == DAY_OF_PAYMENT);
 
         for (uint256 idx = 0; idx < numberOfSubscribers; idx++) {
             address userAddress = subscriberList[idx];
@@ -320,6 +320,11 @@ contract Etherotto is Ownable, EtherottoConfig {
 
     function resetRound() private {
         delete totalTokens;
+        delete numberOfWinners[0];
+        delete numberOfWinners[1];
+        delete numberOfWinners[2];
+        delete numberOfWinners[3];
+        delete numberOfWinners[4];
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
             cabinetList[idx].setNumberOfTickets(0x0);
             cabinetList[idx].delTicketList();

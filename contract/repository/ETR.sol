@@ -10,12 +10,6 @@ contract ETR is SCoin {
      */
     uint16 private tokenValue;
 
-    /** 
-     * 토큰 배당금 비율
-     * 100: 10%
-     */
-    uint16 private tokenDividendsRatio;
-
     /**
      * 이벤트
      */
@@ -24,9 +18,8 @@ contract ETR is SCoin {
     /**
      * 계약 생성자
      */
-    constructor (uint256 _initialSupply, uint16 _tokenValue, uint16 _tokenDividendsRatio) SCoin(_initialSupply) public payable { 
+    constructor (uint256 _initialSupply, uint16 _tokenValue) SCoin(_initialSupply) public payable { 
         tokenValue = _tokenValue;
-        tokenDividendsRatio = _tokenDividendsRatio;
     }
 
     /**
@@ -57,6 +50,23 @@ contract ETR is SCoin {
         coinBalance[address(this)] -= _tokenAmount;
 
         emit Exchange(msg.sender, address(this), _tokenAmount);
+    }
+    
+    function transferFrom(address _from, address _to, uint256 _amount) public onlyOwner returns (bool success) {
+        //require(_to != 0x0);
+        require(coinBalance[_from] > _amount);
+        require(coinBalance[_to] + _amount >= coinBalance[_to]);
+
+        coinBalance[_from] -= _amount;
+        coinBalance[_to] += _amount;
+        
+        emit Transfer(_from, _to, _amount);
+
+        return true;
+    }
+    
+    function getTokenBalance() public view returns(uint256) {
+        return coinBalance[msg.sender];
     }
     
 } 
