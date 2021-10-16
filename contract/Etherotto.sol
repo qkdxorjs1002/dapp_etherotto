@@ -33,14 +33,9 @@ contract Etherotto is Ownable, EtherottoConfig {
     uint256 private totalTokens;
     
     /**
-     * 해당 회차 수상자 수
-     */
-    mapping(uint8 => uint256) private numberOfWinners;
-    
-    /**
      * 해당 회차 수상자
      */
-    mapping(uint8 => mapping(uint256 => address)) private winners;
+    address[][5] private winners;
 
     /**
      * 유저 목록
@@ -107,10 +102,10 @@ contract Etherotto is Ownable, EtherottoConfig {
      * 자동 복권 구매
      */
     function buyTicketAuto() public {
-        buyTicket(generateRandomElectrons());
+        buyTicketAuto(msg.sender);
     }
 
-    function buyTicketAuto(address _target) private register(_target) {
+    function buyTicketAuto(address _target) private {
         buyTicket(_target, generateRandomElectrons());
     }
 
@@ -126,7 +121,7 @@ contract Etherotto is Ownable, EtherottoConfig {
             require(_electrons[idx] > 0 || _electrons[idx] <= 45);
         }
 
-        token.transfer(address(this), TICKET_PRICE);
+        token.transferFrom(_target, address(this), TICKET_PRICE);
         totalTokens += TICKET_PRICE;
         
         uint256 cabinetIndex = userList[_target].getCabinetIndex();
@@ -210,14 +205,14 @@ contract Etherotto is Ownable, EtherottoConfig {
 
                 if (result > 0) {
                     uint8 target = result - 1;
-                    winners[target][numberOfWinners[target]++] = ownerAddress;
+                    winners[target].push(ownerAddress);
                 }
             }
         }
 
         uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 10);
-        uint256 drawer5thReward = DRAWER_5REWARD_TOKEN * numberOfWinners[4];
-        uint256 drawer4thReward = DRAWER_4REWARD_TOKEN * numberOfWinners[3];
+        uint256 drawer5thReward = DRAWER_5REWARD_TOKEN * winners[4].length;
+        uint256 drawer4thReward = DRAWER_4REWARD_TOKEN * winners[3].length;
         drawerReward -= drawer5thReward + drawer4thReward;
         uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 10);
         uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 10);
@@ -229,7 +224,7 @@ contract Etherotto is Ownable, EtherottoConfig {
         ];
 
         for (uint8 idx = 0; idx < 5; idx++) {
-            for (uint256 tdx = 0; tdx < numberOfWinners[idx]; tdx++) {
+            for (uint256 tdx = 0; tdx < winners[idx].length; tdx++) {
                 token.transferFrom(address(this), winners[idx][tdx], drawerRewards[idx]);
             }
         }
@@ -297,6 +292,21 @@ contract Etherotto is Ownable, EtherottoConfig {
         }
     }
 
+    function exchange(uint256 _tokenAmount) public {
+        token.exchange(_tokenAmount);
+    }
+    
+    /**
+     * 토큰 구매
+     */
+    function buyToken(uint256 _tokenAmount) public payable {
+        token.buyToken(_tokenAmount);
+    }
+
+    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
+        return token.getTokenBalance(_target);
+    } 
+
     function generateRandomElectrons() private view returns(uint8[TICKET_ELECTRONS] memory) {
         uint8[45] memory preset;
 
@@ -320,11 +330,8 @@ contract Etherotto is Ownable, EtherottoConfig {
 
     function resetRound() private {
         delete totalTokens;
-        delete numberOfWinners[0];
-        delete numberOfWinners[1];
-        delete numberOfWinners[2];
-        delete numberOfWinners[3];
-        delete numberOfWinners[4];
+        delete winners;
+
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
             cabinetList[idx].setNumberOfTickets(0x0);
             cabinetList[idx].delTicketList();

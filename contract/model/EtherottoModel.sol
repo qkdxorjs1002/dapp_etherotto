@@ -21,30 +21,6 @@ contract Round {
         totalTickets = _totalTickets;
         rewards = _rewards;
     }
-    
-    function getTotalTokens() public view returns(uint256) {
-        return totalTokens;
-    }
-
-    function setTotalTokens(uint256 _totalTokens) public {
-        totalTokens = _totalTokens;
-    }
-    
-    function getTotalTickets() public view returns(uint256) {
-        return totalTickets;
-    }
-
-    function setTotalTickets(uint256 _totalTickets) public {
-        totalTickets = _totalTickets;
-    }
-    
-    function getRewards() public view returns(uint256[5] memory) {
-        return rewards;
-    }
-
-    function setRewards(uint256[5] memory _rewards) public {
-        rewards = _rewards;
-    }
 
     function delRewards() public {
         delete rewards;
@@ -165,7 +141,7 @@ contract Cabinet is EtherottoConfig, JsonConvertable {
 
     function toJson() public view returns(string memory) {
         if (ticketList.length == 0) {
-            return "";
+            return "{}";
         }
 
         string memory jsonArray = "[";
@@ -217,7 +193,7 @@ contract Ticket is EtherottoConfig, JsonConvertable {
 
     function toJson() public view returns(string memory) {
         if (electrons.length == 0) {
-            return "";
+            return "[]";
         }
 
         string memory jsonArray = "[";

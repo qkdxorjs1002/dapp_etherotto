@@ -52,7 +52,7 @@ contract ETR is SCoin {
         emit Exchange(msg.sender, address(this), _tokenAmount);
     }
     
-    function transferFrom(address _from, address _to, uint256 _amount) public onlyOwner returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
         //require(_to != 0x0);
         require(coinBalance[_from] > _amount);
         require(coinBalance[_to] + _amount >= coinBalance[_to]);
@@ -67,6 +67,10 @@ contract ETR is SCoin {
     
     function getTokenBalance() public view returns(uint256) {
         return coinBalance[msg.sender];
+    }
+    
+    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
+        return coinBalance[_target];
     }
     
 } 
