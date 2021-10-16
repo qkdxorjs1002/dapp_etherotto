@@ -2,3 +2,5 @@
 *.json
 *.abi
 *.bin
+web/bower_components/
+web/.DS_Store
