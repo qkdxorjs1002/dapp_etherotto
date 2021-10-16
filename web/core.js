@@ -178,7 +178,7 @@ function paySubscribe(address, callback) {
     etherotto.paySubscribe({
         from: address,
         gas: gasValue
-    }, callback)
+    }, callback);
 }
 
 /**
