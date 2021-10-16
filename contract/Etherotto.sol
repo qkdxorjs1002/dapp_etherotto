@@ -70,7 +70,7 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     constructor (uint256 _tokenInitAmount) Ownable() public payable {
         require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenInitAmount);
-        token = new ETR(_tokenInitAmount + (TOKEN_VALUE * 1), TOKEN_VALUE);
+        token = new ETR(_tokenInitAmount, TOKEN_VALUE);
         token.transfer(address(this), _tokenInitAmount);
     }
 
@@ -180,7 +180,7 @@ contract Etherotto is Ownable, EtherottoConfig {
 
         return string(abi.encodePacked("{",
             "\"user\": ", userList[msg.sender].toJson(), ", ",
-            "\"tokens\": ", Object.uint2str(token.getTokenBalance()), ", ",
+            "\"tokens\": ", Object.uint2str(token.getTokenBalance(msg.sender)), ", ",
             "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
         "}"));
     }
@@ -189,9 +189,9 @@ contract Etherotto is Ownable, EtherottoConfig {
      * 복권 추첨 (계약 소유자 제한)
      */
     function drawTickets() public onlyOwner {
-        //require(Date.getDayOfWeek(uint256(now)) == DAY_OF_DRAWING);
+        require(Date.getDayOfWeek(uint256(now)) == DAY_OF_DRAWING);
         
-        uint8[TICKET_ELECTRONS] memory drawElectrons = [1,2,3,4,5,6,7];
+        uint8[TICKET_ELECTRONS] memory drawElectrons = generateRandomElectrons();
         uint256 totalTickets;
 
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
@@ -210,20 +210,20 @@ contract Etherotto is Ownable, EtherottoConfig {
             }
         }
 
-        uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 10);
+        uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 100);
         uint256 drawer5thReward = DRAWER_5REWARD_TOKEN * winners[4].length;
         uint256 drawer4thReward = DRAWER_4REWARD_TOKEN * winners[3].length;
-        drawerReward -= drawer5thReward + drawer4thReward;
-        uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 10);
-        uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 10);
-        uint256 drawer1stReward = drawerReward * (DRAWER_1REWARD_RATIO / 10);
+        drawerReward -= (drawer5thReward + drawer4thReward);
+        uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 100);
+        uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 100);
+        uint256 drawer1stReward = drawerReward * (DRAWER_1REWARD_RATIO / 100);
 
         uint256[5] memory drawerRewards = [
             drawer1stReward, drawer2ndReward, 
             drawer3rdReward, drawer4thReward, drawer5thReward
         ];
 
-        for (uint8 idx = 0; idx < 5; idx++) {
+        for (uint8 idx = 0; idx < winners.length; idx++) {
             for (uint256 tdx = 0; tdx < winners[idx].length; tdx++) {
                 token.transferFrom(address(this), winners[idx][tdx], drawerRewards[idx]);
             }
@@ -284,28 +284,41 @@ contract Etherotto is Ownable, EtherottoConfig {
         for (uint256 idx = 0; idx < numberOfSubscribers; idx++) {
             address userAddress = subscriberList[idx];
 
-            if (userList[userAddress].getSubscribeTo() < now) { 
+            if (userList[userAddress].getSubscribeTo() <= now) { 
                 unsubscribe(userAddress);
             } else {
                 buyTicketAuto(userAddress);
             }
         }
     }
-
-    function exchange(uint256 _tokenAmount) public {
-        token.exchange(_tokenAmount);
-    }
     
     /**
      * 토큰 구매
      */
     function buyToken(uint256 _tokenAmount) public payable {
-        token.buyToken(_tokenAmount);
+        require(_tokenAmount > 0);
+        require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenAmount);
+
+        token.transfer(msg.sender, _tokenAmount);
+    }
+
+    /**
+     * ETR토큰을 ETH로 환전하여 sender에 입금
+     */
+    function exchange(uint256 _tokenAmount) public {
+        require(_tokenAmount > 0);
+        require(token.getTokenBalance(msg.sender) >= _tokenAmount);
+
+        token.transferFrom(msg.sender, address(this), _tokenAmount);
+
+        if (!msg.sender.send((_tokenAmount / TOKEN_VALUE) * 1 ether)) {
+            revert();
+        }
     }
 
     function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
         return token.getTokenBalance(_target);
-    } 
+    }
 
     function generateRandomElectrons() private view returns(uint8[TICKET_ELECTRONS] memory) {
         uint8[45] memory preset;

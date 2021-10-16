@@ -1,76 +1,60 @@
 pragma solidity ^0.5.1;
 
-import "./SCoin.sol";
+import "../Ownable.sol";
 
-contract ETR is SCoin {
+contract ETR is Ownable {
 
     /** 
      * 토큰 기준 가치
      * 1000 : 1ETH = 1000ETR
      */
     uint16 private tokenValue;
+    
+    mapping(address => uint256) public tokenBalanceList;
 
     /**
      * 이벤트
      */
+    event Transfer(address indexed from, address indexed to, uint256 amount);
     event Exchange(address indexed from, address indexed to, uint256 amount);
 
     /**
      * 계약 생성자
      */
-    constructor (uint256 _initialSupply, uint16 _tokenValue) SCoin(_initialSupply) public payable { 
+    constructor (uint256 _initialSupply, uint16 _tokenValue) public payable { 
         tokenValue = _tokenValue;
-    }
-
-    /**
-     * ETR토큰을 ETH로 환전하여 sender에 입금
-     */
-    function exchange(uint256 _tokenAmount) public {
-        require(_tokenAmount > 0);
-        require(coinBalance[msg.sender] >= _tokenAmount);
-
-        coinBalance[msg.sender] -= _tokenAmount;
-        coinBalance[address(this)] += _tokenAmount;
-
-        if (!msg.sender.send(_tokenAmount / tokenValue)) {
-            revert();
-        }
-
-        emit Exchange(msg.sender, msg.sender, _tokenAmount);
+        mint(msg.sender, _initialSupply);
     }
     
-    /**
-     * 토큰 구매
-     */
-    function buyToken(uint256 _tokenAmount) public payable {
-        require(_tokenAmount > 0);
-        require(uint256(msg.value * tokenValue / 1 ether) == _tokenAmount);
-
-        coinBalance[msg.sender] += _tokenAmount;
-        coinBalance[address(this)] -= _tokenAmount;
-
-        emit Exchange(msg.sender, address(this), _tokenAmount);
+    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
+        return tokenBalanceList[_target];
     }
-    
+
+    function transfer(address _to, uint256 _amount) public {
+        require(tokenBalanceList[msg.sender] >= _amount);
+        require(tokenBalanceList[_to] + _amount >= tokenBalanceList[_to]);
+
+        tokenBalanceList[msg.sender] -= _amount;
+        tokenBalanceList[_to] += _amount;
+
+        emit Transfer(msg.sender, _to, _amount);
+    }
+
     function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
-        //require(_to != 0x0);
-        require(coinBalance[_from] > _amount);
-        require(coinBalance[_to] + _amount >= coinBalance[_to]);
+        require(tokenBalanceList[_from] >= _amount);
+        require(tokenBalanceList[_to] + _amount >= tokenBalanceList[_to]);
 
-        coinBalance[_from] -= _amount;
-        coinBalance[_to] += _amount;
+        tokenBalanceList[_from] -= _amount;
+        tokenBalanceList[_to] += _amount;
         
         emit Transfer(_from, _to, _amount);
 
         return true;
     }
-    
-    function getTokenBalance() public view returns(uint256) {
-        return coinBalance[msg.sender];
+
+    function mint(address _recipient, uint256 _mintedAmount) public payable onlyOwner {
+        tokenBalanceList[_recipient] += _mintedAmount;
+
+        emit Transfer(ownerAddress, _recipient, _mintedAmount);
     }
-    
-    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
-        return coinBalance[_target];
-    }
-    
 } 
