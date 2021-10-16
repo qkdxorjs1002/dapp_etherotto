@@ -72,6 +72,7 @@ contract Etherotto is Ownable, EtherottoConfig {
         require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenInitAmount);
         token = new ETR(_tokenInitAmount, TOKEN_VALUE);
         token.transfer(address(this), _tokenInitAmount);
+        numberOfRounds++;
     }
 
     modifier register(address _address) {
@@ -211,6 +212,14 @@ contract Etherotto is Ownable, EtherottoConfig {
 
     function getTokenBalance() public view returns(uint256) {
         return token.getTokenBalance(msg.sender);
+    }
+
+    function getRoundNumber() public view returns(uint256) {
+        return numberOfRounds;
+    }
+
+    function getRoundInfo(uint256 _round) public view returns(string memory) {
+        return roundList[_round].toJson();
     }
 
     /**
