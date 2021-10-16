@@ -1,91 +1,11 @@
 pragma solidity ^0.5.1;
 
-import "./token/ETR.sol";
+import "./library/EtherottoLibrary.sol";
+import "./model/EtherottoConfig.sol";
+import "./model/EtherottoModel.sol";
+import "./repository/ETR.sol";
 
-contract Etherotto is Ownable {
-    
-    /** 
-     * 토큰 기준 가치
-     * 1000 : 1ETH = 1000ETR
-     */
-    uint16 public constant TOKEN_VALUE = 1000;
-
-    /** 
-     * 토큰 배당금 비율
-     * 100: 10%
-     */
-    uint16 public constant TOKEN_DIVIDENDS_RATIO = 100;
-
-    /** 
-     * 복권 당첨금 비율
-     */
-    uint32 constant TOKEN_DRAWER_REWARD_RATIO = 80;
-
-    /** 
-     * 복권 가격
-     * 100: 100토큰
-     */
-    uint16 constant TICKET_PRICE = 10;
-
-    /** 
-     * 복권 당첨 번호 수
-     * 1~45 번호 6개 + 보너스 1개(고정/필수)
-     */
-    uint8 constant TICKET_ELECTRONS = 7;
-
-    /** 
-     * 복권 1등 당첨금 비율
-     */
-    uint32 constant DRAWER_1REWARD_RATIO = 70;
-    
-    /** 
-     * 복권 2등 당첨금 비율
-     */
-    uint32 constant DRAWER_2REWARD_RATIO = 15;
-
-    /** 
-     * 복권 3등 당첨금 비율
-     */
-    uint32 constant DRAWER_3REWARD_RATIO = 15;
-
-    /** 
-     * 복권 4등 당첨금
-     */
-    uint32 constant DRAWER_4REWARD_TOKEN = 500;
-
-    /** 
-     * 복권 5등 당첨금
-     */
-    uint32 constant DRAWER_5REWARD_TOKEN = 50;
-
-    /**
-     * 복권 추첨 요일
-     * 일요일 시작으로 토요일까지 0~6
-     * 6: 토요일
-     */
-    uint8 constant DAY_OF_DRAWING = 6;
-
-    /**
-     * 복권 정기 결제 요일
-     * 일요일 시작으로 토요일까지 0~6
-     * 1: 월요일
-     */
-    uint8 constant DAY_OF_PAYMENT = 1;
-
-    /**
-     * 한 달을 초로 환산
-     */
-    uint32 constant SECONDS_OF_MONTH = 2629746;
-
-    /**
-     * 한 주를 초로 환산
-     */
-    uint32 constant SECONDS_OF_WEEK = 604800;
-
-    /**
-     * 하루를 초로 환산
-     */
-    uint32 constant SECONDS_OF_DAY = 86400;
+contract Etherotto is Ownable, EtherottoConfig {
 
     /**
      * Etherotto Token
@@ -111,6 +31,11 @@ contract Etherotto is Ownable {
      * 해당 회차 총 토큰
      */
     uint256 private totalTokens;
+    
+    /**
+     * 해당 회차 수상자
+     */
+    address[][5] private winners;
 
     /**
      * 유저 목록
@@ -141,70 +66,27 @@ contract Etherotto is Ownable {
     event DrawTicket(uint256 timestamp);
 
     /**
-     * 회차 구조체
-     */
-    struct Round {
-
-        uint256 totalTokens;
-        uint256 totalTickets;
-        uint256[5] rewards;
-        
-    }
-
-    /**
-     * 유저 구조체
-     */
-    struct User {
-
-        uint256 cabinetIndex;
-        uint256 subscriberIndex;
-        uint256 subscribeSince;
-        uint256 subscribeTo;
-        uint256 timestamp;
-
-    }
-
-    /**
-     * 캐비닛 구조체
-     */
-    struct Cabinet {
-
-        address ownerAddress;
-        uint256 numberOfTickets;
-
-        mapping(uint256 => Ticket) ticketList;
-
-    }
-
-    /**
-     * 복권 구조체
-     */
-    struct Ticket {
-
-        uint256 timestamp;
-
-        mapping(uint8 => uint8) electronList;
-        
-    }
-
-    /**
      * 계약 생성자
      */
     constructor (uint256 _tokenInitAmount) Ownable() public payable {
-        require((msg.value * TOKEN_VALUE) == _tokenInitAmount);
-        token = new ETR(_tokenInitAmount, TOKEN_VALUE, TOKEN_DIVIDENDS_RATIO);
+        require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenInitAmount);
+        token = new ETR(_tokenInitAmount, TOKEN_VALUE);
+        token.transfer(address(this), _tokenInitAmount);
     }
 
-    modifier register() {
-        if (userList[msg.sender].timestamp == 0) {
-            userList[msg.sender] = User({
-                cabinetIndex: numberOfCabinets++,
-                subscriberIndex: 0,
-                subscribeSince: 0,
-                subscribeTo: 0,
-                timestamp: now
-            });
-            cabinetList[userList[msg.sender].cabinetIndex].ownerAddress = msg.sender;
+    modifier register(address _address) {
+        if (Object.isEmpty(address(userList[_address]))) {
+            userList[_address] = new User(
+                numberOfCabinets,
+                0,
+                0,
+                0,
+                uint256(now)
+            );
+            cabinetList[numberOfCabinets++] = new Cabinet(
+                _address,
+                0
+            );
         }
         _;
     }
@@ -219,46 +101,50 @@ contract Etherotto is Ownable {
     /**
      * 자동 복권 구매
      */
-    function buyTicketAuto() public register {
-        buyTicket(generateRandomElectrons());
+    function buyTicketAuto() public {
+        buyTicketAuto(msg.sender);
+    }
+
+    function buyTicketAuto(address _target) private {
+        buyTicket(_target, generateRandomElectrons());
     }
 
     /**
      * 수동 복권 구매
      */
-    function buyTicket(uint8[] memory _electrons) public register {
+    function buyTicket(uint8[TICKET_ELECTRONS] memory _electrons) public {
+        buyTicket(msg.sender, _electrons);
+    }
+    
+    function buyTicket(address _target, uint8[TICKET_ELECTRONS] memory _electrons) private register(_target) {
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            require(_electrons[idx] <= 45);
+            require(_electrons[idx] > 0 || _electrons[idx] <= 45);
         }
 
-        token.transfer(address(this), TICKET_PRICE);
+        token.transferFrom(_target, address(this), TICKET_PRICE);
         totalTokens += TICKET_PRICE;
         
-        uint256 cabinetIndex = userList[msg.sender].cabinetIndex;
-        uint256 ticketIndex = cabinetList[cabinetIndex].numberOfTickets;
+        uint256 cabinetIndex = userList[_target].getCabinetIndex();
 
-        cabinetList[cabinetIndex].ownerAddress = msg.sender;
-        cabinetList[cabinetIndex].numberOfTickets++;
-        cabinetList[cabinetIndex].ticketList[ticketIndex].timestamp = now;
+        Ticket ticket = new Ticket(uint256(now));
+        ticket.setElectrons(_electrons);
 
-        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            cabinetList[cabinetIndex].ticketList[ticketIndex].electronList[idx] = _electrons[idx];  
-        }
+        cabinetList[cabinetIndex].addTicket(ticket);
     }
 
     /**
      * 정기 결제 구독 가입
      */
-    function subscribe(uint256 _month) public register {
+    function subscribe(uint256 _month) public register(msg.sender) {
         require(_month >= 1);
 
-        if (userList[msg.sender].subscribeSince == 0) {
-            userList[msg.sender].subscriberIndex = numberOfSubscribers++;
-            userList[msg.sender].subscribeSince = now;
-            userList[msg.sender].subscribeTo = now + (SECONDS_OF_MONTH * _month);
-            subscriberList[userList[msg.sender].subscriberIndex] = msg.sender;
+        if (userList[msg.sender].getSubscribeSince() == 0) {
+            userList[msg.sender].setSubscriberIndex(numberOfSubscribers++);
+            userList[msg.sender].setSubscribeSince(uint256(now));
+            userList[msg.sender].setSubscribeTo(uint256(now) + (SECONDS_OF_MONTH * _month));
+            subscriberList[userList[msg.sender].getSubscriberIndex()] = msg.sender;
         } else {
-            userList[msg.sender].subscribeTo += (SECONDS_OF_MONTH * _month);
+            userList[msg.sender].setSubscribeTo(userList[msg.sender].getSubscribeTo() + (SECONDS_OF_MONTH * _month));
         }
     }
 
@@ -270,12 +156,19 @@ contract Etherotto is Ownable {
     }
     
     function unsubscribe(address _address) private {
-        require(userList[_address].subscribeSince > 0);
+        require(!Object.isEmpty(address(userList[_address])));
 
-        delete subscriberList[userList[_address].subscriberIndex];
-        delete userList[_address].subscriberIndex;
-        delete userList[_address].subscribeSince;
-        delete userList[_address].subscribeTo;
+        delete subscriberList[userList[_address].getSubscriberIndex()];
+        
+        User user = new User(
+            userList[_address].getCabinetIndex(),
+            0,
+            0,
+            0,
+            userList[_address].getTimestamp()
+        );
+        
+        userList[_address] = user;
         numberOfSubscribers--;
     }
 
@@ -283,80 +176,78 @@ contract Etherotto is Ownable {
      * 내 정보 조회
      */
     function getMyInfo() public view returns(string memory) {
-        require(userList[msg.sender].timestamp > 0);
+        require(userList[msg.sender].getTimestamp() > 0);
 
-        return (string(abi.encodePacked(
-            userToJson(userList[msg.sender]),
-            ", ",
-            cabinetToJson(cabinetList[userList[msg.sender].cabinetIndex])
-        )));
+        return string(abi.encodePacked("{",
+            "\"user\": ", userList[msg.sender].toJson(), ", ",
+            "\"tokens\": ", Object.uint2str(token.getTokenBalance(msg.sender)), ", ",
+            "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
+        "}"));
     }
 
     /**
      * 복권 추첨 (계약 소유자 제한)
      */
     function drawTickets() public onlyOwner {
-        require(getDayOfWeek(now) == DAY_OF_DRAWING);
-
-        uint8[] memory drawElectrons = generateRandomElectrons();
+        require(Date.getDayOfWeek(uint256(now)) == DAY_OF_DRAWING);
+        
+        uint8[TICKET_ELECTRONS] memory drawElectrons = generateRandomElectrons();
         uint256 totalTickets;
-        address[][] memory winners;
 
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
-            address ownerAddress = cabinetList[idx].ownerAddress;
-            uint256 numberOfTickets = cabinetList[idx].numberOfTickets;
+            address ownerAddress = cabinetList[idx].getOwnerAddress();
+            uint256 numberOfTickets = cabinetList[idx].getNumberOfTickets();
             totalTickets += numberOfTickets;
 
             for (uint256 tdx = 0; tdx < numberOfTickets; tdx++) {
-                uint8 result = drawTicket(cabinetList[idx].ticketList[tdx], drawElectrons);
+                Ticket[] memory ticketList = cabinetList[idx].getTicketList();
+                uint8 result = drawTicket(ticketList[tdx], drawElectrons);
 
-                if (result != 0) {
+                if (result > 0) {
                     uint8 target = result - 1;
-                    winners[target][winners[target].length] = ownerAddress;
+                    winners[target].push(ownerAddress);
                 }
             }
         }
 
-        uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 10);
+        uint256 drawerReward = totalTokens * (TOKEN_DRAWER_REWARD_RATIO / 100);
         uint256 drawer5thReward = DRAWER_5REWARD_TOKEN * winners[4].length;
         uint256 drawer4thReward = DRAWER_4REWARD_TOKEN * winners[3].length;
-        drawerReward -= drawer5thReward + drawer4thReward;
-        uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 10);
-        uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 10);
-        uint256 drawer1stReward = drawerReward * (DRAWER_1REWARD_RATIO / 10);
+        drawerReward -= (drawer5thReward + drawer4thReward);
+        uint256 drawer3rdReward = drawerReward * (DRAWER_3REWARD_RATIO / 100);
+        uint256 drawer2ndReward = drawerReward * (DRAWER_2REWARD_RATIO / 100);
+        uint256 drawer1stReward = drawerReward * (DRAWER_1REWARD_RATIO / 100);
 
         uint256[5] memory drawerRewards = [
             drawer1stReward, drawer2ndReward, 
             drawer3rdReward, drawer4thReward, drawer5thReward
         ];
 
-        for (uint256 idx = 0; idx < winners.length; idx++) {
-            address[] memory targets = winners[idx];
-            
-            for (uint256 tdx = 0; tdx < targets.length; tdx++) {
-                token.transferFrom(address(this), targets[tdx], drawerRewards[idx]);
+        for (uint8 idx = 0; idx < winners.length; idx++) {
+            for (uint256 tdx = 0; tdx < winners[idx].length; tdx++) {
+                token.transferFrom(address(this), winners[idx][tdx], drawerRewards[idx]);
             }
         }
 
-        roundList[numberOfRounds] = Round({
-            totalTokens: totalTokens,
-            totalTickets: totalTickets,
-            rewards: drawerRewards
-        });
+        roundList[numberOfRounds] = new Round(
+            totalTokens,
+            totalTickets,
+            drawerRewards
+        );
 
         resetRound();
     }
 
-    function drawTicket(Ticket storage _ticket, uint8[] memory _drawElectrons) private view returns(uint8) {
-        mapping(uint8 => uint8) storage electronList = _ticket.electronList;
+    function drawTicket(Ticket _ticket, uint8[TICKET_ELECTRONS] memory _drawElectrons) private view returns(uint8) {
+        uint8[TICKET_ELECTRONS] memory electrons = _ticket.getElectrons();
 
         uint8 matched;
         bool hasBonusNum = false;
         for (uint8 edx = 0; edx < TICKET_ELECTRONS; edx++) {
             for (uint ddx = 0; ddx < TICKET_ELECTRONS; ddx++) {
-                if (electronList[edx] == _drawElectrons[ddx]) {
-                    if (ddx == TICKET_ELECTRONS) {
-                        hasBonusNum == true;
+                if (electrons[edx] == _drawElectrons[ddx]) {
+                    if (ddx == TICKET_ELECTRONS - 1) {
+                        hasBonusNum = true;
                     }
                     matched++;
                     break;
@@ -388,103 +279,77 @@ contract Etherotto is Ownable {
      * 복권 정기 결제 (계약 소유자 제한)
      */
     function paySubscribe() public onlyOwner {
-        require(getDayOfWeek(now) == DAY_OF_PAYMENT);
+        require(Date.getDayOfWeek(now) == DAY_OF_PAYMENT);
 
         for (uint256 idx = 0; idx < numberOfSubscribers; idx++) {
             address userAddress = subscriberList[idx];
 
-            if (userList[userAddress].subscribeTo < now) { 
+            if (userList[userAddress].getSubscribeTo() <= now) { 
                 unsubscribe(userAddress);
             } else {
-                // TODO: unsubscribe 처럼 오버로딩해서 address 지정 가능하도록
-                buyTicketAuto();
+                buyTicketAuto(userAddress);
             }
         }
     }
+    
+    /**
+     * 토큰 구매
+     */
+    function buyToken(uint256 _tokenAmount) public payable {
+        require(_tokenAmount > 0);
+        require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenAmount);
 
-    function generateRandomElectrons() private view returns(uint8[] memory) {
-        uint8[] memory electrons;
+        token.transfer(msg.sender, _tokenAmount);
+    }
+
+    /**
+     * ETR토큰을 ETH로 환전하여 sender에 입금
+     */
+    function exchange(uint256 _tokenAmount) public {
+        require(_tokenAmount > 0);
+        require(token.getTokenBalance(msg.sender) >= _tokenAmount);
+
+        token.transferFrom(msg.sender, address(this), _tokenAmount);
+
+        if (!msg.sender.send((_tokenAmount / TOKEN_VALUE) * 1 ether)) {
+            revert();
+        }
+    }
+
+    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
+        return token.getTokenBalance(_target);
+    }
+
+    function generateRandomElectrons() private view returns(uint8[TICKET_ELECTRONS] memory) {
+        uint8[45] memory preset;
+
+        for (uint8 idx = 0; idx < preset.length; idx++) {
+            preset[idx] = idx + 1;
+        }
+
+        uint8[TICKET_ELECTRONS] memory electrons;
 
         for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            bool isDup = false;
-            while (isDup) {
-                electrons[idx] = generateRandomElectron();
-                for (uint8 tdx = 0; tdx < idx; tdx++) {
-                    if (electrons[idx] == electrons[tdx]) {
-                        isDup = true;
-                        break;
-                    }
-                }
-            }
+            uint8 targetIdx = uint8(generateRandomElectron() % (45 - idx));
+            electrons[idx] = preset[targetIdx];
+            preset[targetIdx] = preset[44 - idx];
         }
         return electrons;
     }
 
+    function generateRandomElectron() private view returns(uint) {
+        return uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender)));
+    }
+
     function resetRound() private {
         delete totalTokens;
+        delete winners;
+
         for (uint256 idx = 0; idx < numberOfCabinets; idx++) {
-            delete cabinetList[idx].numberOfTickets;
-            for (uint256 tdx = 0; tdx < cabinetList[idx].numberOfTickets; tdx++) {
-                delete cabinetList[idx].ticketList[tdx];
-            }
+            cabinetList[idx].setNumberOfTickets(0x0);
+            cabinetList[idx].delTicketList();
         }
         numberOfRounds++;
-    }
-
-    function generateRandomElectron() private view returns(uint8) {
-        return uint8((uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender))) % 45) + 1);
-    }
-
-    function getDayOfWeek(uint256 _timestamp) private pure returns(uint256) {
-        return (uint(_timestamp / SECONDS_OF_DAY) + 4) % 7;
-    }
-
-    function userToJson(User storage _target) private view returns(string memory) {
-        return string(abi.encodePacked("{",
-            "\"cabIndex\": ", _target.cabinetIndex, ", ",
-            "\"subIndex\": ", _target.subscriberIndex, ", ",
-            "\"since\": ", _target.subscribeSince, ", ",
-            "\"to\": ", _target.subscribeTo,
-            "\"timestamp\": ", _target.timestamp,
-        "}"));
-    }
-    
-    function cabinetToJson(Cabinet storage _target) private view returns(string memory) {
-        string memory jsonArray = "[";
-    
-        for (uint8 idx = 0; idx < _target.numberOfTickets; idx++) {
-            jsonArray = string(abi.encodePacked(jsonArray, ticketToJson(_target.ticketList[idx])));
-
-            if (idx < TICKET_ELECTRONS - 1) {
-                jsonArray = string(abi.encodePacked(jsonArray, ", "));
-            }
-        }
-
-        jsonArray = string(abi.encodePacked(jsonArray, "]"));
-
-        return string(abi.encodePacked("{",
-            "\"ownerAddress\": ", _target.ownerAddress, ", ",
-            "\"numOfTickets\": ", _target.numberOfTickets, ", ",
-            "\"tickets\": ", jsonArray, ", ",
-        "}"));
-    }
-    
-    function ticketToJson(Ticket storage _target) private view returns(string memory) {
-        string memory jsonArray = "[";
-    
-        for (uint8 idx = 0; idx < TICKET_ELECTRONS; idx++) {
-            jsonArray = string(abi.encodePacked(jsonArray, _target.electronList[idx]));
-            if (idx < TICKET_ELECTRONS - 1) {
-                jsonArray = string(abi.encodePacked(jsonArray, ", "));
-            }
-        }
-
-        jsonArray = string(abi.encodePacked(jsonArray, "]"));
-
-        return string(abi.encodePacked("{",
-            "\"timestamp\": ", _target.timestamp, ", ",
-            "\"electrons\": ", jsonArray, ", ",
-        "}"));
     }
 
 }
