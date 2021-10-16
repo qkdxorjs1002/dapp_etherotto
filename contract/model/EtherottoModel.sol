@@ -10,7 +10,7 @@ interface JsonConvertable {
 /**
  * 회차
  */
-contract Round {
+contract Round is JsonConvertable {
 
     uint256 totalTokens;
     uint256 totalTickets;
@@ -24,6 +24,30 @@ contract Round {
 
     function delRewards() public {
         delete rewards;
+    }
+    
+    function toJson() public view returns(string memory) {
+        if (rewards.length == 0) {
+            return "[]";
+        }
+
+        string memory jsonArray = "[";
+    
+        for (uint8 idx = 0; idx < rewards.length; idx++) {
+            jsonArray = string(abi.encodePacked(jsonArray, Object.uint2str(rewards[idx])));
+
+            if (idx < rewards.length - 1) {
+                jsonArray = string(abi.encodePacked(jsonArray, ", "));
+            }
+        }
+
+        jsonArray = string(abi.encodePacked(jsonArray, "]"));
+
+        return string(abi.encodePacked("{",
+            "\"totalTokens\": ", Object.uint2str(totalTokens), ", ",
+            "\"totalTickets\": ", Object.uint2str(totalTickets), ", ",
+            "\"rewards\": ", jsonArray,
+        "}"));
     }
 }
 
