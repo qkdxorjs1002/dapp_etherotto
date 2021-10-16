@@ -40,22 +40,22 @@ contract Etherotto is Ownable, EtherottoConfig {
     /**
      * 유저 목록
      */
-    mapping(uint256 => Round) public roundList;
+    mapping(uint256 => Round) private roundList;
 
     /**
      * 유저 목록
      */
-    mapping(address => User) public userList;
+    mapping(address => User) private userList;
 
     /**
      * 캐비닛 목록
      */
-    mapping(uint256 => Cabinet) public cabinetList;
+    mapping(uint256 => Cabinet) private cabinetList;
     
     /**
      * 정기 결제 구독자 목록
      */
-    mapping(uint256 => address) public subscriberList;
+    mapping(uint256 => address) private subscriberList;
 
     /**
      * 이벤트
@@ -96,6 +96,30 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     function () external payable {
         revert();
+    }
+    
+    /**
+     * 토큰 구매
+     */
+    function buyToken(uint256 _tokenAmount) public payable {
+        require(_tokenAmount > 0);
+        require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenAmount);
+
+        token.transfer(msg.sender, _tokenAmount);
+    }
+
+    /**
+     * ETR토큰을 ETH로 환전하여 sender에 입금
+     */
+    function exchange(uint256 _tokenAmount) public {
+        require(_tokenAmount > 0);
+        require(token.getTokenBalance(msg.sender) >= _tokenAmount);
+
+        token.transferFrom(msg.sender, address(this), _tokenAmount);
+
+        if (!msg.sender.send((_tokenAmount / TOKEN_VALUE) * 1 ether)) {
+            revert();
+        }
     }
 
     /**
@@ -183,6 +207,10 @@ contract Etherotto is Ownable, EtherottoConfig {
             "\"tokens\": ", Object.uint2str(token.getTokenBalance(msg.sender)), ", ",
             "\"cabinet\": ", cabinetList[userList[msg.sender].getCabinetIndex()].toJson(),
         "}"));
+    }
+
+    function getTokenBalance() public view returns(uint256) {
+        return token.getTokenBalance(msg.sender);
     }
 
     /**
@@ -290,34 +318,6 @@ contract Etherotto is Ownable, EtherottoConfig {
                 buyTicketAuto(userAddress);
             }
         }
-    }
-    
-    /**
-     * 토큰 구매
-     */
-    function buyToken(uint256 _tokenAmount) public payable {
-        require(_tokenAmount > 0);
-        require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenAmount);
-
-        token.transfer(msg.sender, _tokenAmount);
-    }
-
-    /**
-     * ETR토큰을 ETH로 환전하여 sender에 입금
-     */
-    function exchange(uint256 _tokenAmount) public {
-        require(_tokenAmount > 0);
-        require(token.getTokenBalance(msg.sender) >= _tokenAmount);
-
-        token.transferFrom(msg.sender, address(this), _tokenAmount);
-
-        if (!msg.sender.send((_tokenAmount / TOKEN_VALUE) * 1 ether)) {
-            revert();
-        }
-    }
-
-    function getTokenBalance(address _target) public view onlyOwner returns(uint256) {
-        return token.getTokenBalance(_target);
     }
 
     function generateRandomElectrons() private view returns(uint8[TICKET_ELECTRONS] memory) {
