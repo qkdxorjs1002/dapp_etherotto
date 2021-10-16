@@ -32,15 +32,15 @@ contract Etherotto is Ownable, EtherottoConfig {
      */
     uint256 private totalTokens;
     
-    // /**
-    //  * 해당 회차 수상자 수
-    //  */
-    // mapping(uint8 => uint256) private numberOfWinners;
+    /**
+     * 해당 회차 수상자 수
+     */
+    mapping(uint8 => uint256) private numberOfWinners;
     
-    // /**
-    //  * 해당 회차 수상자
-    //  */
-    // mapping(uint8 => mapping(uint256 => address)) private winners;
+    /**
+     * 해당 회차 수상자
+     */
+    mapping(uint8 => mapping(uint256 => address)) private winners;
 
     /**
      * 유저 목록
