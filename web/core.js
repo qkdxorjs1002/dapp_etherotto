@@ -59,8 +59,8 @@ function exchange(address, tokenAmount, callback) {
  * 
  * `callback` function(error, token) : 콜백 함수
  */
-function getMyTokenBalance(address, callback) {
-    etherotto.getMyTokenBalance({
+function getTokenBalance(address, callback) {
+    etherotto.getTokenBalance({
         from: address,
         gas: gasValue
     }, callback);
