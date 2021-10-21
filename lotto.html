@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="bower_components/web3/dist/web3.min.js"></script>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="./simplecoin.js"></script>
+        <meta charset= "utf-8">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+        <title>EtherLotto</title>
+        <!-- 초기화 -->
+        <style>
+            * {margin: 0; padding: 0;
+            font-family: 'Gowun Dodum', sans-serif;}
+            li {list-style: none;}
+            a {text-decoration: none;}
+        </style>
+        <!-- 헤더 -->
+        <style>
+            #main_header{
+                width: 960px;
+                margin: 0 auto;
+    
+                height: 160px;
+                position: relative;
+            }
+            #main_header > #title {position: absolute; left: 20px; top: 30px;}
+            #main_header > #main_lnb {position: absolute; right: 0px; bottom: 10px;}
+        </style>
+        <!-- 메뉴(1) -->
+        <style>
+            #main_lnb > ul {overflow: hidden;}
+            #main_lnb > ul > li {float: left;}
+    
+            #main_lnb > ul > li > a {
+                display: block;
+                padding: 10px 20px;
+                border: 1px solid black;
+            }
+            #main_lnb > ul > li > a:hover{
+                background-color: black;
+                color: white;
+            }
+            #main_lnb > ul > li:first-child > a {border-radius: 10px 0 0 10px;}
+            #main_lnb > ul > li:last-child > a {border-radius: 0 10px 10px 0px;}
+        </style>
+        <!-- 콘텐츠 -->
+        <style>
+            #content
+            {
+                width: 960px; margin: 0 auto;
+                overflow: hidden;
+            }
+            #content > #main_section {width: 960px;}
+        </style>
+        <!-- 본문 -->
+        <style>
+            #main_section > article.winning_number
+            {
+                margin-bottom: 10px;
+                padding: 45px;
+                border: 1px solid black;
+            }
+            #main_section > article.owner {
+                padding: 20px;
+            }
+            #main_section > article.season_ticket{
+                margin-bottom: 10px;
+                padding: 50px;
+                border: 1px solid black;
+            }
+            #main_section > article.ticket{
+                margin-bottom: 10px;
+                padding: 50px;
+                border: 1px solid black;
+            }
+        </style>
+        <!-- 로또 번호 -->
+        <style>
+            .num {
+                display: inline-block;
+                /* border: 1px solid lightskyblue; */
+                background-color: lightskyblue;
+                border-radius: 20px;
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                font-size: 20px;
+                text-align: center;
+                margin-right: 20px;
+                float: left; 
+            }
+            .bonusnum {
+                /* border: 1px solid orange; */
+                background-color: orange;
+                border-radius: 20px;
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                font-size: 20px;
+                text-align: center;
+                margin-right: 20px;
+                float: left;
+            }
+            /*.plus{
+                float: left;
+            }*/
+        </style>
+        <!-- 버튼 -->
+        
+
+    </head>
+
+    <body>
+        <header id = "main_header">
+            <div id="title">
+                <h1>EtherLotto</h1>
+            </div>
+            <nav id="main_lnb">
+                <ul>
+                    <li><a href="#">구매하기</a></li>
+                    <li><a href="#">환전하기</a></li>
+                    <li><a href="#">계정관리</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div id="content">
+            <section id="main_section">
+                <article class="winning_number">
+                    <h2>당첨번호</h2>
+                    <div class="num"><span class="num1"></span></div>
+                    <div class="num"><span class="num2"></span></div>
+                    <div class="num"><span class="num3"></span></div>
+                    <div class="num"><span class="num4"></span></div>
+                    <div class="num"><span class="num5"></span></div>
+                    <div class="num"><span class="num6"></span></div>
+                    <!-- <div class="plus">➕</div> -->
+                    <div class="bonusnum"><span class="num7"></span></div>
+                </article>
+                <article class="owner">
+                    <h2>나의 보유 복권</h2>
+                </article>
+                <article class="season_ticket">
+                    <h3>정기권</h3>
+                    <div class="num"><span class="num7"></span></div>
+                    <div class="num"><span class="num8"></span></div>
+                    <div class="num"><span class="num9"></span></div>
+                    <div class="num"><span class="num10"></span></div>
+                    <div class="num"><span class="num11"></span></div>
+                    <div class="num"><span class="num12"></span></div>
+                    <!-- <div class="plus">➕</div> -->
+                    <div class="bonusnum"><span class="num13"></span></div>
+                    <div id="Buttons">
+                        <!-- 결과 버튼을 누르면 텍스트가 변경됨 당첨&미당첨-->
+                        <!--<button id="result" onclick="resultName()">결과</button>-->
+                        <button type="button" class="btn btn-success">결과</button>
+                        <!-- 환전 누르면 환전페이지로 이동 -->
+                        <!-- <button id="change" onclick="location.href='#'">환전</button> -->
+                        <button type="button" class="btn btn-primary">환전</button>
+                    </div>
+                </article>
+                <article class="ticket">
+                    <h3>일반권</h3>
+                    <div class="num"><span calss="num14"></span></div>
+                    <div class="num"><span calss="num15"></span></div>
+                    <div class="num"><span calss="num16"></span></div>
+                    <div class="num"><span calss="num17"></span></div>
+                    <div class="num"><span calss="num18"></span></div>
+                    <div class="num"><span calss="num19"></span></div>
+                    <!-- <div class="plus">➕</div> -->
+                    <div class="bonusnum"><span calss="num20"></span></div>
+                    <div class="Buttons">
+                        <!-- 결과 버튼을 누르면 텍스트가 변경됨 당첨&미당첨-->
+                        <!-- <button id="result" onclick="resultName()">결과</button>-->
+                        <button type="button" class="btn btn-success">결과</button>
+                        <!-- 환전 누르면 환전페이지로 이동 -->
+                        <!-- <button id="change" onclick="location.href='#'">환전</button> -->
+                        <button type="button" class="btn btn-primary">환전</button>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </body>
+</html>
