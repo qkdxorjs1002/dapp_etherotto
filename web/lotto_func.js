@@ -1,7 +1,6 @@
 
 const sevenNumsArr = generateSevenNums();
 
-
 // 6개의 정렬된 로또번호와 보너스 번호 1개 해서 총 7개의 번호를 배열로 반환하는 함수
 function generateSevenNums() {
     let numSet = new Set();
