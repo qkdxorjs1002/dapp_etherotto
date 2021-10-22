@@ -1,15 +1,144 @@
 <html lang="ko">
 
 <head>
-    <title>Etherotto</title>
-    
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
     <script src="bower_components/web3/dist/web3.min.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="./core.js"></script>
+    <script src="./lotto_func.js"></script>
+    <link rel="stylesheet" href="style_sheet.css">
+
+    <title>Etherotto</title>
 </head>
 
 <body>
-    <!-- 페이지 구현 -->
+<h1 class="display-4">_Etherotto_</h1>
+<div class="wrap">
+    <div id="header">
+    <div class="lottoNum" id="num1"> </div>
+    <div class="lottoNum" id="num2"> </div>
+    <div class="lottoNum" id="num3"> </div>
+    <div class="lottoNum" id="num4"> </div>
+    <div class="lottoNum" id="num5"> </div>
+    <div class="lottoNum" id="num6"> </div>
+    <div class="sign" id="plusSign">+</div>
+    <div class="lottoNum" id="num7"> </div>
+</div>
+
+    <div id="left-section">
+        <div id="login">
+            <h3>로그인</h3>
+            <div class="login-class" id="login-box">
+                <div class="form-group">
+                    <label>address</label>
+                    <input class="form-control" id="inputAddr" aria-describedby="emailHelp"
+                           placeholder="Enter address">
+                    <small class="form-text text-muted">본인의 계정 주소를 입력하세요.</small>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="InputPassword" placeholder="Password">
+                </div>
+
+                <button class="btn btn-primary" onclick="unlockAccount()">LOGIN</button>
+            </div>
+        </div>
+        <div id="myInfo">
+            <h3>내 정보</h3>
+            <ul>
+              <li>컨트랙트 주소: <span id="contractAddr"></span></li>
+              <li>내 어카운트 주소: <span id="accountAddr"></span></li>
+              <li>잔액: <span id="myTokenBalance"></span>
+              <br> <button onclick="getTokenBalance()">잔액 확인하기</button></li> </br>
+              </ul>
+        </div>
+
+
+    </div>
+
+    <div id="section">
+        <div id="my-manual-lottery-ticket">
+            <h3>나의 수동 복권</h3>
+            <div>
+
+            </div>
+        </div>
+        <div id="my-automatic-lottery-ticket">
+            <h3>나의 자동 복권</h3>
+        </div>
+
+
+    </div>
+
+    <div id="right-section">
+        <div id="exchange">
+            <h3>환전(token → ether)</h3>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">token</span>
+              </div>
+              <input type="text" class="form-control" id="exchange-token" aria-label="Amount (to the nearest dollar)">
+            </div>
+            <button type="button" class="btn btn-secondary" id="exchange-btn" onclick="exchange()">환전하기</button>
+
+        </div>
+        <div id="buy-token">
+            <h3>구매(ether → token)</h3>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">ether</span>
+              </div>
+              <input type="text" class="form-control" id="buy-token-amount" aria-label="Amount (to the nearest dollar)">
+            </div>
+            <button type="button" class="btn btn-secondary" id="buy-token-btn" onclick="buyToken()">구매하기</button>
+
+        </div>
+        <div id="buy-manual-lottery-ticket">
+            <h3>수동복권 구매</h3>
+            <div class="alert alert-warning" role="alert" id="manual-lottery-numbers">
+                <span></span>
+            </div>
+            <button type="button" class="btn btn-warning" id="reroll-num" onclick="reroll()">새로고침</button>
+            <button type="button" class="btn btn-success" id="buy-manual-lottery-ticket-btn" onclick="buyTicket()">구매</button>
+
+        </div>
+        <div id="buy-automatic-lottery-ticket">
+            <h3>자동복권 구매</h3>
+            <button type="button" class="btn btn-success" id="buy-automatic-lottery-ticket-btn" onclick="buyTicketAuto()">구매</button>
+
+        </div>
+    </div>
+
+</div>
+
+    <script>
+        for (i=1; i<8; i++) { // 메인 상단에 로또 번호 띄우는
+            document.getElementById('num'+i).innerText = sevenNumsArr[i-1]
+        }
+        function reroll() { // 수동복권 번호 만들기
+            var autoLotteryNum = generateSevenNums();
+            document.getElementById('manual-lottery-numbers').innerText = autoLotteryNum
+        }
+
+    </script>
+
 </body>
 
 </html>
