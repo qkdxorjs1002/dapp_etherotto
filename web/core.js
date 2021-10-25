@@ -1,17 +1,15 @@
+var Web3 = require('web3');
 web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 
 const contractABI = [{"inputs":[{"internalType":"uint256","name":"_tokenInitAmount","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"who","type":"address"}],"name":"BuyTicket","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"DrawTicket","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"who","type":"address"},{"indexed":false,"internalType":"uint256","name":"since","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"to","type":"uint256"}],"name":"Subscribe","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"who","type":"address"},{"indexed":false,"internalType":"uint256","name":"since","type":"uint256"}],"name":"Unsubscribe","type":"event"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"constant":true,"inputs":[],"name":"DAY_OF_DRAWING","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DAY_OF_PAYMENT","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DRAWER_1REWARD_RATIO","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DRAWER_2REWARD_RATIO","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DRAWER_3REWARD_RATIO","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DRAWER_4REWARD_TOKEN","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"DRAWER_5REWARD_TOKEN","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"SECONDS_OF_DAY","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"SECONDS_OF_MONTH","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"TICKET_ELECTRONS","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"TICKET_PRICE","outputs":[{"internalType":"uint16","name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"TOKEN_DRAWER_REWARD_RATIO","outputs":[{"internalType":"uint32","name":"","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"TOKEN_VALUE","outputs":[{"internalType":"uint16","name":"","type":"uint16"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"uint8[7]","name":"_electrons","type":"uint8[7]"}],"name":"buyTicket","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"buyTicketAuto","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"_tokenAmount","type":"uint256"}],"name":"buyToken","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"drawTickets","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"_tokenAmount","type":"uint256"}],"name":"exchange","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getMyInfo","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"uint256","name":"_round","type":"uint256"}],"name":"getRoundInfo","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getRoundNumber","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getTokenBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ownerAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"paySubscribe","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"_month","type":"uint256"}],"name":"subscribe","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"unsubscribe","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}];
-const contractAddress = "";
+const contractAddress = "0x3E9c8D893b80Fe842c7c6bf8E38C8919D6C5D48D";
 const gasValue = 3000000;
 
 var contract = web3.eth.contract(contractABI);
 var etherotto = contract.at(contractAddress);
 
 var accounts = web3.eth.accounts;
-
-// 내정보 띄우기
-document.getElementById('contractAddr').innerText = contractAddress
-document.getElementById('accountAddr').innerText = accounts[0]
+console.log(accounts)
 
 /**
  * 계정 잠금을 해제합니다.
@@ -21,8 +19,15 @@ document.getElementById('accountAddr').innerText = accounts[0]
  * 
  * `callback` function(error) : 콜백 함수
  */
-function unlockAccount(address, password, callback) {
-    web3.eth.personal.unlockAccount(address, password, gasValue, callback);
+function unlockAccount() {
+    var address = document.getElementById("inputAddr").value;
+    var password = document.getElementById("InputPassword").value;
+    console.log(address, password)
+    web3.personal.unlockAccount(address, password);
+    var contractAddr = document.getElementById("contractAddr");
+    contractAddr.innerHTML = contractAddress
+    var accountAddr = document.getElementById("accountAddr");
+    accountAddr.innerHTML = address
 }
 
 /**
@@ -34,10 +39,15 @@ function unlockAccount(address, password, callback) {
  * `callback` function(error) : 콜백 함수
  */
 function buyToken(address, tokenAmount, callback) {
-    etherotto.buyToken(tokenAmount, { 
+    var address = document.getElementById("inputAddr").value;
+    var tokenAmount = document.getElementById("buy-token-amount").value;
+    console.log(tokenAmount)
+    var tokenAmount_toWei = tokenAmount * 1000000000000000000;
+    console.log(tokenAmount_toWei)
+    etherotto.buyToken(tokenAmount_toWei, {
         from: address, 
         gas: gasValue, 
-        value: web3.utils.toWei(1, "ether") * tokenAmount 
+        value: tokenAmount_toWei
     }, callback);
 }
 
@@ -50,6 +60,9 @@ function buyToken(address, tokenAmount, callback) {
  * `callback` function(error) : 콜백 함수
  */
 function exchange(address, tokenAmount, callback) {
+    var address = document.getElementById("inputAddr").value;
+    var tokenAmount = document.getElementById("exchange-token-amount").value;
+    console.log(tokenAmount)
     etherotto.exchange(tokenAmount, {
         from: address,
         gas: gasValue
@@ -64,10 +77,29 @@ function exchange(address, tokenAmount, callback) {
  * `callback` function(error, token) : 콜백 함수
  */
 function getTokenBalance(address, callback) {
-    etherotto.getTokenBalance({
+    var address = document.getElementById("inputAddr").value;
+    var TokenBalance = etherotto.getTokenBalance({
         from: address,
         gas: gasValue
     }, callback);
+    var myTokenBalance = document.getElementById("myTokenBalance");
+    myTokenBalance.innerHTML = TokenBalance;
+    console.log(TokenBalance);
+}
+
+/**
+ * 현재 계정의 이더 잔액을 반환합니다.
+ *
+ * `address` string : 계정 주소
+ *
+ * `callback` function(error, token) : 콜백 함수
+ */
+function getEtherBalance(address, callback) {
+    var address = document.getElementById("inputAddr").value;
+    var EtherBalance = web3.eth.getBalance(address);
+    var myEthernBalance = document.getElementById("myEtherBalance");
+    myEtherBalance.innerHTML = EtherBalance;
+    console.log(EtherBalance);
 }
 
 /**
