@@ -44,9 +44,15 @@
 </div>
 
     <div id="left-section">
+<<<<<<< HEAD
         <div id="unlock">
             <h3>계정잠금해제</h3>
             <div class="unlock-class" id="unlock-box">
+=======
+        <div id="login">
+            <h3>로그인</h3>
+            <div class="login-class" id="login-box">
+>>>>>>> 1b7ff5ef3c5b6605f6075843f9962774ed79c9c6
                 <div class="form-group">
                     <label>address</label>
                     <input class="form-control" id="inputAddr" aria-describedby="emailHelp"
@@ -58,18 +64,29 @@
                     <input type="password" class="form-control" id="InputPassword" placeholder="Password">
                 </div>
 
+<<<<<<< HEAD
                 <button class="btn btn-primary" onclick="unlockAccount()">UNLOCK</button>
+=======
+                <button class="btn btn-primary" onclick="unlockAccount()">LOGIN</button>
+>>>>>>> 1b7ff5ef3c5b6605f6075843f9962774ed79c9c6
             </div>
         </div>
         <div id="myInfo">
             <h3>내 정보</h3>
             <ul>
+<<<<<<< HEAD
                 <li>컨트랙트 주소: <span id="contractAddr"></span></li>
                 <li>내 어카운트 주소: <span id="accountAddr"></span></li>
                 <li>나의 토큰 잔액: <span id="myTokenBalance"></span>
                     <br> <button onclick="getTokenBalance()">토큰 잔액 확인하기</button></li> </br>
                 <li>나의 이더 잔액: <span id="myEtherBalance"></span>
                     <br> <button onclick="getEtherBalance()">이더 잔액 확인하기</button></li> </br>
+=======
+              <li>컨트랙트 주소: <span id="contractAddr"></span></li>
+              <li>내 어카운트 주소: <span id="accountAddr"></span></li>
+              <li>잔액: <span id="myTokenBalance"></span>
+              <br> <button onclick="getTokenBalance()">잔액 확인하기</button></li> </br>
+>>>>>>> 1b7ff5ef3c5b6605f6075843f9962774ed79c9c6
               </ul>
         </div>
 
@@ -91,6 +108,7 @@
     </div>
 
     <div id="right-section">
+<<<<<<< HEAD
         <div id="buy-token">
             <h3>구매(ether → token)</h3>
             <div class="input-group mb-3">
@@ -111,6 +129,28 @@
               <input type="text" class="form-control" id="exchange-token-amount" aria-label="Amount (to the nearest dollar)">
             </div>
             <button type="button" class="btn btn-secondary" id="exchange-btn" onclick="exchange()">환전하기</button>
+=======
+        <div id="exchange">
+            <h3>환전(token → ether)</h3>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">token</span>
+              </div>
+              <input type="text" class="form-control" id="exchange-token" aria-label="Amount (to the nearest dollar)">
+            </div>
+            <button type="button" class="btn btn-secondary" id="exchange-btn" onclick="exchange()">환전하기</button>
+
+        </div>
+        <div id="buy-token">
+            <h3>구매(ether → token)</h3>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text">ether</span>
+              </div>
+              <input type="text" class="form-control" id="buy-token-amount" aria-label="Amount (to the nearest dollar)">
+            </div>
+            <button type="button" class="btn btn-secondary" id="buy-token-btn" onclick="buyToken()">구매하기</button>
+>>>>>>> 1b7ff5ef3c5b6605f6075843f9962774ed79c9c6
 
         </div>
         <div id="buy-manual-lottery-ticket">

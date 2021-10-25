@@ -11,6 +11,11 @@ var etherotto = contract.at(contractAddress);
 var accounts = web3.eth.accounts;
 console.log(accounts)
 
+// 내정보 띄우기
+document.getElementById('contractAddr').innerText = contractAddress
+document.getElementById('accountAddr').innerText = accounts[0]
+
+
 /**
  * 계정 잠금을 해제합니다.
  * 
