@@ -27,6 +27,12 @@ function buyToken() {
     console.log("method: request: buyToken", address, tokenAmount);
     core.buyToken(address, tokenAmount, (error, result) => {
         console.log("method: done: buyToken", address, tokenAmount, error, result);
+
+        if (!result) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+        }
     });
 }
 
@@ -37,6 +43,12 @@ function exchange() {
     console.log("method: request: exchange", address, tokenAmount);
     core.exchange(address, tokenAmount, (error, result) => {
         console.log("method: done: exchange", address, tokenAmount, error, result);
+
+        if (!result) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+        }
     });
 }
 
