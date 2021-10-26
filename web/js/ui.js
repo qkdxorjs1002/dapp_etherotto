@@ -296,6 +296,8 @@ function drawTickets() {
 
 jQuery(function () {
     var roundInfo = document.getElementById("round-query");
+    var title = document.getElementById("currentRoundNum");
     var round = getRoundNumber();
     roundInfo.value = round;
+    title.innerText = round;
 });
