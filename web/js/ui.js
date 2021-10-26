@@ -4,23 +4,29 @@ function unlockAccount() {
     var address = document.getElementById("inputAddr").value;
     var password = document.getElementById("InputPassword").value;
 
-    console.log(address, password);
-    core.unlockAccount(address, password);
+    console.log("method: request: unlockAccount", address, password);
+    core.unlockAccount(address, password, (error, result) => {
+        console.log("method: done: unlockAccount", address, password, error, result);
 
-    var contractAddr = document.getElementById("contractAddr");
-    var accountAddr = document.getElementById("accountAddr");
+        if (!result) {
+            alert(error);
+        } else {
+            var contractAddr = document.getElementById("contractAddr");
+            var accountAddr = document.getElementById("accountAddr");
 
-    contractAddr.innerHTML = core.contractAddress;
-    accountAddr.innerHTML = core.address;
+            contractAddr.innerHTML = core.contractAddress;
+            accountAddr.innerHTML = address;
+        }
+    });
 }
 
 function buyToken() {
     var address = document.getElementById("inputAddr").value;
     var tokenAmount = document.getElementById("buy-token-amount").value;
 
-    console.log(address, tokenAmount);
-    core.buyToken(address, tokenAmount, () => {
-        console.log("method: done: buyToken");
+    console.log("method: request: buyToken", address, tokenAmount);
+    core.buyToken(address, tokenAmount, (error, result) => {
+        console.log("method: done: buyToken", address, tokenAmount, error, result);
     });
 }
 
@@ -28,19 +34,25 @@ function exchange() {
     var address = document.getElementById("inputAddr").value;
     var tokenAmount = document.getElementById("exchange-token-amount").value;
 
-    console.log(tokenAmount)
-    core.exchange(address, tokenAmount, () => {
-        console.log("method: done: exchange");
+    console.log("method: request: exchange", address, tokenAmount);
+    core.exchange(address, tokenAmount, (error, result) => {
+        console.log("method: done: exchange", address, tokenAmount, error, result);
     });
 }
 
 function getTokenBalance() {
     var address = document.getElementById("inputAddr").value;
 
-    core.getTokenBalance(address, (value) => {
-        var myTokenBalance = document.getElementById("myTokenBalance");
-        myTokenBalance.innerHTML = value;
-        console.log(value);
+    console.log("method: request: getTokenBalance", address);
+    core.getTokenBalance(address, (error, result) => {
+        console.log("method: done: getTokenBalance", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            var myTokenBalance = document.getElementById("myTokenBalance");
+            myTokenBalance.innerHTML = result;
+        }
     });
 }
 
@@ -48,47 +60,61 @@ function getEtherBalance() {
     var address = document.getElementById("inputAddr").value;
     var myEtherBalance = document.getElementById("myEtherBalance");
 
-    const etherBalance = web3.eth.getBalance(address);
-    myEtherBalance.innerHTML = etherBalance;
-    console.log(etherBalance);
+    console.log("method: request: getTokenBalance", address);
+    core.web3.eth.getBalance(address, (error, result) => {
+        console.log("method: done: getTokenBalance", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            myEtherBalance.innerHTML = result;
+        }
+    });
 }
 
 function buyTicket() {
     var address = document.getElementById("inputAddr").value;
     var electrons = [];
-    var input_string = [];
 
     for (var i = 0; i < 7; i++) {
-        input_string[i] = document.getElementsByName("basic-addon")[i].value;
-        electrons[i] = parseInt(input_string[i]);
+        electrons[i] = parseInt(document.getElementsByName("basic-addon")[i].value);
     }
-    console.log(input_string);
-    console.log(electrons);
 
-    core.buyTicket(address, electrons, () => {
-        console.log("method: done: buyTicket");
-    });
+    console.log("method: request: buyTicket", address, electrons);
+    core.buyTicket(address, electrons, (error, result) => {
+        console.log("method: done: buyTicket", address, electrons, error, result);
 
-    // 나의 수동 복권에 붙이기
-    // var boughtTicket = document.getElementById("my-manual-lottery-ticket-01");
-    // boughtTicket.innerHTML = electrons
+        if (error != null) {
+            alert(error);
+        } else {
+            // 나의 수동 복권에 붙이기
+            // var boughtTicket = document.getElementById("my-manual-lottery-ticket-01");
+            // boughtTicket.innerHTML = electrons
 
-    let temp_html = `
-        <div class="card">
-            <div class="card-body" id="my-manual-lottery-ticket-01">
-                ${electrons}
+            let temp_html = `
+                <div class="card">
+                    <div class="card-body" id="my-manual-lottery-ticket-01">
+                        ${electrons}
+                        </div>
                 </div>
-        </div>
-        `;
-    $('#cards-box').append(temp_html);
-
+                `;
+            $('#cards-box').append(temp_html);
+        }
+    });
 }
 
 function buyTicketAuto() {
     var address = document.getElementById("inputAddr").value;
 
-    core.buyTicketAuto(address, () => {
-        console.log("method: done: buyTicketAuto");
+    console.log("method: request: buyTicketAuto", address);
+    core.buyTicketAuto(address, (error, result) => {
+        console.log("method: done: buyTicketAuto", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
@@ -97,24 +123,45 @@ function subscribe() {
     var address = document.getElementById("inputAddr").value;
     // var month = null;
 
-    core.subscribe(address, month, () => {
-        console.log("method: done: subscribe");
+    console.log("method: request: subscribe", address, month);
+    core.subscribe(address, month, (error, result) => {
+        console.log("method: done: subscribe", address, month, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
 function unsubscribe() {
     var address = document.getElementById("inputAddr").value;
 
-    core.unsubscribe(address, () => {
-        console.log("method: done: unsubscribe");
+    console.log("method: request: unsubscribe", address);
+    core.unsubscribe(address, (error, result) => {
+        console.log("method: done: unsubscribe", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
 function getRoundNumber() {
     var address = document.getElementById("inputAddr").value;
 
-    core.getRoundNumber(address, (value) => {
-        console.log("method: done: getRoundNumber", value);
+    console.log("method: request: getRoundNumber", address);
+    core.getRoundNumber(address, (error, result) => {
+        console.log("method: done: getRoundNumber", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+    
+        }
     });
 }
 
@@ -123,32 +170,60 @@ function getRoundInfo() {
     var address = document.getElementById("inputAddr").value;
     // var round = null;
     
-    core.getRoundInfo(address, round, (value) => {
-        console.log("method: done: getRoundInfo", value);
+    console.log("method: request: getRoundInfo", address, round);
+    core.getRoundInfo(address, round, (error, result) => {
+        console.log("method: done: getRoundInfo", address, round, error, result);
+        
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
 function getMyInfo() {
     var address = document.getElementById("inputAddr").value;
     
-    core.getMyInfo(address, round, (value) => {
-        console.log("method: done: getMyInfo", value);
+    console.log("method: request: getMyInfo", address, round);
+    core.getMyInfo(address, round, (error, result) => {
+        console.log("method: done: getMyInfo", address, round, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
 function paySubscribe() {
     var address = document.getElementById("inputAddr").value;
 
-    core.paySubscribe(address, () => {
-        console.log("method: done: paySubscribe");
+    console.log("method: request: paySubscribe", address);
+    core.paySubscribe(address, (error, result) => {
+        console.log("method: done: paySubscribe", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
 function drawTickets() {
     var address = document.getElementById("inputAddr").value;
     
-    core.drawTickets(address, () => {
-        console.log("method: done: drawTickets");
+    console.log("method: request: drawTickets", address);
+    core.drawTickets(address, (error, result) => {
+        console.log("method: done: drawTickets", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+        }
     });
 }
 
