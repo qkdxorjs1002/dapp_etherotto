@@ -116,7 +116,7 @@ function buyTicket() {
 
 function buyTicketAuto() {
     var address = document.getElementById("inputAddr").value;
-
+    var ticket = ""
     console.log("method: request: buyTicketAuto", address);
     core.buyTicketAuto(address, (error, result) => {
         console.log("method: done: buyTicketAuto", address, error, result);
@@ -125,7 +125,17 @@ function buyTicketAuto() {
             alert(error);
         } else {
             // TODO: 요청 보낸 후 처리
-            var myInfo = getMyInfo();
+            ticket = getMyInfo();
+            console.log(ticket);
+            let temp_html = `
+                <div class="card">
+                    <div class="card-body" id="my-automatic-lottery-ticket-01">
+                        ${ticket}
+                        </div>
+                </div>
+                `;
+            $('#automatic-lottery-cards-box').append(temp_html);
+
         }
     });
 }
@@ -248,20 +258,25 @@ function getRoundInfo() {
     });
 }
 
+var count = -1;
+
 function getMyInfo() {
     var address = document.getElementById("inputAddr").value;
     var round = getRoundNumber();
     console.log("method: request: getMyInfo", address, round);
-    core.getMyInfo(address, round, (error, result) => {
-        console.log("method: done: getMyInfo", address, round, error, result);
 
-        if (error != null) {
+        try {
+            count++;
+            var result = core.getMyInfo(address);
+            result = JSON.parse(result);
+            var electrons = result.cabinet.tickets[count].electrons;
+            console.log(electrons);
+        } catch (error) {
             alert(error);
-        } else {
-            var resultJSON = result;
-            console.log("result : ", result, "resultJSON : ", resultJSON);
         }
-    });
+        console.log("method: done: getMyInfo", address, round, result);
+        return electrons;
+
 }
 
 function paySubscribe() {
