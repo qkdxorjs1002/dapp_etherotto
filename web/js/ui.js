@@ -166,19 +166,19 @@ function getRoundNumber() {
     var address = document.getElementById("inputAddr").value;
     console.log("method: request: getRoundNumber", address);
 
-    var round = core.getRoundNumber(address, (error, result) => {
-        console.log("method: done: getRoundNumber", address, error, result);
+    var round = -1;
+    try {
+        var result = core.getRoundNumber(address);
+        round = result.toNumber();
+    } catch (error) {
+        alert(error);
+    }
+    console.log("method: done: getRoundNumber", address, result);
 
-        if (error != null) {
-            alert(error);
-        } else {
-            // TODO: 요청 보낸 후 처리
-            round = result.toNumber();
-            console.log(round);
-            //return round;
-        }
-    });
-    console.log(round);
+    if (round < 0) {
+        throw Exception("variable `round` is not valid");
+    }
+    
     return round;
 }
 
