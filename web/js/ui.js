@@ -28,7 +28,7 @@ function buyToken() {
     core.buyToken(address, tokenAmount, (error, result) => {
         console.log("method: done: buyToken", address, tokenAmount, error, result);
 
-        if (!result) {
+        if (error != null) {
             alert(error);
         } else {
             // TODO: 요청 보낸 후 처리
@@ -44,7 +44,7 @@ function exchange() {
     core.exchange(address, tokenAmount, (error, result) => {
         console.log("method: done: exchange", address, tokenAmount, error, result);
 
-        if (!result) {
+        if (error != null) {
             alert(error);
         } else {
             // TODO: 요청 보낸 후 처리
