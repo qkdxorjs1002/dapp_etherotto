@@ -1,4 +1,4 @@
-import * as core from "./core.js";
+const core = new EtherottoCore();
 
 function unlockAccount() {
     var address = document.getElementById("inputAddr").value;
