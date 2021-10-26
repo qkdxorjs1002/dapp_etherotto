@@ -85,7 +85,7 @@
 
         <div id="subscribe">
             <h3>구독 관리</h3>
-            <button type="button" class="btn btn-secondary" id="subscribe-btn" onclick="getSubscribeInfo()">구독정보</button>
+            <button type="button" class="btn btn-secondary" id="subscribe-info-btn" onclick="getSubscribeInfo()">구독정보</button>
             <ul id="subscribeInfoContainer" style="display: none;">
                 <li><span id="subscribeSince"></span> 부터 구독</li>
                 <li><span id="subscribeTo"></span> 까지 유효</li>
@@ -120,10 +120,8 @@
 
         <div id="my-automatic-lottery-ticket">
             <h3>나의 자동 복권</h3>
-            <div class="card">
-              <div class="card-body" id="my-automatic-lottery-ticket-01">
-                복권번호
-              </div>
+            <div class="card" id="automatic-lottery-cards-box">
+
             </div>
         </div>
 
@@ -142,7 +140,7 @@
             <ul id="roundInfoContainer">
                 <li>토큰 수: <span id="totalTokens"></span></li>
                 <li>복권 수: <span id="totalTickets"></span></li>
-                <li>복권 수: <span id="totalTickets"></span></li>
+                <li>복권 수: <span id="totalTickets_1"></span></li>
                 <li>상금: <span id="rewards"></span></li>
             </ul>
             <button type="button" class="btn btn-secondary" id="round-info-btn" onclick="getRoundInfo()">새로고침</button>
@@ -225,18 +223,6 @@
     </div>
 
 </div>
-
-<script>
-    for (i = 1; i < 8; i++) { // 메인 상단에 로또 번호 띄우는
-        document.getElementById('num' + i).innerText = sevenNumsArr[i - 1]
-    }
-
-    function reroll() { // 수동복권 번호 만들기
-        var autoLotteryNum = generateSevenNums();
-        document.getElementById('manual-lottery-numbers').innerText = autoLotteryNum
-    }
-
-</script>
 
 </body>
 
