@@ -31,7 +31,8 @@ function buyToken() {
         if (error != null) {
             alert(error);
         } else {
-            // TODO: 요청 보낸 후 처리
+            alert("구매되었습니다.");
+            // web3.js contract 이벤트 처리
         }
     });
 }
@@ -47,7 +48,8 @@ function exchange() {
         if (error != null) {
             alert(error);
         } else {
-            // TODO: 요청 보낸 후 처리
+            alert("환전되었습니다.");
+            // web3.js contract 이벤트 처리
         }
     });
 }
@@ -99,9 +101,6 @@ function buyTicket() {
         if (error != null) {
             alert(error);
         } else {
-            // 나의 수동 복권에 붙이기
-            // var boughtTicket = document.getElementById("my-manual-lottery-ticket-01");
-            // boughtTicket.innerHTML = electrons
 
             let temp_html = `
                 <div class="card">
@@ -126,6 +125,7 @@ function buyTicketAuto() {
             alert(error);
         } else {
             // TODO: 요청 보낸 후 처리
+            var myInfo = getMyInfo();
         }
     });
 }
@@ -164,24 +164,30 @@ function unsubscribe() {
 
 function getRoundNumber() {
     var address = document.getElementById("inputAddr").value;
-
     console.log("method: request: getRoundNumber", address);
-    core.getRoundNumber(address, (error, result) => {
+
+    var round = core.getRoundNumber(address, (error, result) => {
         console.log("method: done: getRoundNumber", address, error, result);
 
         if (error != null) {
             alert(error);
         } else {
             // TODO: 요청 보낸 후 처리
+            round = result.toNumber();
+            console.log(round);
+            //return round;
         }
     });
+    console.log(round);
+    return round;
 }
 
 // TODO:
 function getRoundInfo() {
     var address = document.getElementById("inputAddr").value;
     // var round = null;
-    
+    var round = getRoundNumber();
+
     console.log("method: request: getRoundInfo", address, round);
     core.getRoundInfo(address, round, (error, result) => {
         console.log("method: done: getRoundInfo", address, round, error, result);
@@ -196,7 +202,7 @@ function getRoundInfo() {
 
 function getMyInfo() {
     var address = document.getElementById("inputAddr").value;
-    
+    var round = getRoundNumber();
     console.log("method: request: getMyInfo", address, round);
     core.getMyInfo(address, round, (error, result) => {
         console.log("method: done: getMyInfo", address, round, error, result);
@@ -204,7 +210,8 @@ function getMyInfo() {
         if (error != null) {
             alert(error);
         } else {
-            // TODO: 요청 보낸 후 처리
+            var resultJSON = result;
+            console.log("result : ", result, "resultJSON : ", resultJSON);
         }
     });
 }
