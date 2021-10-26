@@ -214,11 +214,18 @@ function getRoundNumber() {
     return round;
 }
 
-// TODO:
 function getRoundInfo() {
+    var round = document.getElementById("round-query").value;
+
+    if (round <= 1) {
+        alert("아직 기록된 회차 정보가 없습니다.");
+        throw Exception("there's no round info yet.");
+    }
+
     var address = document.getElementById("inputAddr").value;
-    // var round = null;
-    var round = getRoundNumber();
+    var totalTokens = document.getElementById("totalTokens");
+    var totalTickets = document.getElementById("totalTickets");
+    var rewards = document.getElementById("rewards");
 
     console.log("method: request: getRoundInfo", address, round);
     core.getRoundInfo(address, round, (error, result) => {
@@ -227,7 +234,16 @@ function getRoundInfo() {
         if (error != null) {
             alert(error);
         } else {
-            // TODO: 요청 보낸 후 처리
+            try {
+                var json = JSON.parse(result);
+            } catch (error) {
+                alert(error);
+                throw error;
+            }
+
+            totalTokens.innerText = json.totalTokens;
+            totalTickets.innerText = json.totalTickets;
+            rewards.innerText = json.rewards;
         }
     });
 }
@@ -279,5 +295,7 @@ function drawTickets() {
 }
 
 jQuery(function () {
-    // 페이지 로드 후 실행
+    var roundInfo = document.getElementById("round-query");
+    var round = getRoundNumber();
+    roundInfo.value = round;
 });

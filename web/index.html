@@ -131,6 +131,23 @@
     </div>
 
     <div id="right-section">
+        <div id="round-info">
+            <h3>회차 정보 조회</h3>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">회차</span>
+                </div>
+                <input type="text" class="form-control" id="round-query">
+            </div>
+            <ul id="roundInfoContainer">
+                <li>토큰 수: <span id="totalTokens"></span></li>
+                <li>복권 수: <span id="totalTickets"></span></li>
+                <li>복권 수: <span id="totalTickets"></span></li>
+                <li>상금: <span id="rewards"></span></li>
+            </ul>
+            <button type="button" class="btn btn-secondary" id="round-info-btn" onclick="getRoundInfo()">새로고침</button>
+
+        </div>
         <div id="buy-token">
             <h3>구매(ether → token)</h3>
             <div class="input-group mb-3">
