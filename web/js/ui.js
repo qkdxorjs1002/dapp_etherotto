@@ -130,10 +130,41 @@ function buyTicketAuto() {
     });
 }
 
+function getSubscribeInfo() {
+    var address = document.getElementById("inputAddr").value;
+    var container = document.getElementById("subscribeInfoContainer");
+    var since = document.getElementById("subscribeSince");
+    var to = document.getElementById("subscribeTo");
+
+    console.log("method: done: getMyInfo", address);
+    core.getMyInfo(address, (error, result) => {
+        console.log("method: done: getMyInfo", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            try {
+                var json = JSON.parse(result);
+            } catch (error) {
+                alert(error);
+                throw error;
+            }
+
+            if (json.user.since > 0) {
+                since.innerText = new Date(json.user.since * 1000).toLocaleString();
+                to.innerText = new Date(json.user.to * 1000).toLocaleString();
+                container.style.display = "block";
+            } else {
+                container.style.display = "none";
+            }
+        }
+    });
+}
+
 // TODO:
 function subscribe() {
     var address = document.getElementById("inputAddr").value;
-    // var month = null;
+    var month = document.getElementById("subscribe-month").value;
 
     console.log("method: request: subscribe", address, month);
     core.subscribe(address, month, (error, result) => {
@@ -149,6 +180,7 @@ function subscribe() {
 
 function unsubscribe() {
     var address = document.getElementById("inputAddr").value;
+    var container = document.getElementById("subscribeInfoContainer");
 
     console.log("method: request: unsubscribe", address);
     core.unsubscribe(address, (error, result) => {
@@ -157,7 +189,7 @@ function unsubscribe() {
         if (error != null) {
             alert(error);
         } else {
-            // TODO: 요청 보낸 후 처리
+            container.style.display = "none";
         }
     });
 }

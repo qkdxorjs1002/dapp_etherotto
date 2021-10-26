@@ -84,6 +84,12 @@
 
         <div id="subscribe">
             <h3>구독 관리</h3>
+            <button type="button" class="btn btn-secondary" id="subscribe-btn" onclick="getSubscribeInfo()">구독정보</button>
+            <ul id="subscribeInfoContainer" style="display: none;">
+                <li><span id="subscribeSince"></span> 부터 구독</li>
+                <li><span id="subscribeTo"></span> 까지 유효</li>
+            </ul>
+
             <h5>구독하기</h5>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
