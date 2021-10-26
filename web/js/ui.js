@@ -113,7 +113,7 @@ function buyTicketAuto() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -130,7 +130,7 @@ function subscribe() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -145,7 +145,7 @@ function unsubscribe() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -160,7 +160,7 @@ function getRoundNumber() {
         if (error != null) {
             alert(error);
         } else {
-    
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -177,7 +177,7 @@ function getRoundInfo() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -192,7 +192,7 @@ function getMyInfo() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -207,7 +207,7 @@ function paySubscribe() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
@@ -222,7 +222,7 @@ function drawTickets() {
         if (error != null) {
             alert(error);
         } else {
-
+            // TODO: 요청 보낸 후 처리
         }
     });
 }
