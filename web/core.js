@@ -11,11 +11,6 @@ var etherotto = contract.at(contractAddress);
 var accounts = web3.eth.accounts;
 console.log(accounts)
 
-// 내정보 띄우기
-document.getElementById('contractAddr').innerText = contractAddress
-document.getElementById('accountAddr').innerText = accounts[0]
-
-
 /**
  * 계정 잠금을 해제합니다.
  * 
@@ -102,7 +97,7 @@ function getTokenBalance(address, callback) {
 function getEtherBalance(address, callback) {
     var address = document.getElementById("inputAddr").value;
     var EtherBalance = web3.eth.getBalance(address);
-    var myEthernBalance = document.getElementById("myEtherBalance");
+    var myEtherBalance = document.getElementById("myEtherBalance");
     myEtherBalance.innerHTML = EtherBalance;
     console.log(EtherBalance);
 }
@@ -116,10 +111,36 @@ function getEtherBalance(address, callback) {
  * `callback` function(error) : 콜백 함수
  */
 function buyTicket(address, electrons, callback) {
+    var address = document.getElementById("inputAddr").value;
+    var electrons = [];
+    var input_string = [];
+
+
+    for (var i = 0; i < 7; i++) {
+        input_string[i] = document.getElementsByName("basic-addon")[i].value;
+        electrons[i] = parseInt(input_string[i]);
+    }
+    console.log(input_string)
+    console.log(electrons);
+
     etherotto.buyTicket(electrons, {
         from: address,
         gas: gasValue
     }, callback);
+
+    // 나의 수동 복권에 붙이기
+    // var boughtTicket = document.getElementById("my-manual-lottery-ticket-01");
+    // boughtTicket.innerHTML = electrons
+
+    let temp_html = `
+                    <div class="card">
+                        <div class="card-body" id="my-manual-lottery-ticket-01">
+                            ${electrons}
+                          </div>
+                    </div>
+                    `;
+    $('#cards-box').append(temp_html);
+
 }
 
 /**
@@ -130,6 +151,8 @@ function buyTicket(address, electrons, callback) {
  * `callback` function(error) : 콜백 함수
  */
 function buyTicketAuto(address, callback) {
+    var address = document.getElementById("inputAddr").value;
+
     etherotto.buyTicketAuto({
         from: address,
         gas: gasValue
