@@ -60,10 +60,12 @@ contract Etherotto is Ownable, EtherottoConfig {
     /**
      * 이벤트
      */
+    event BuyToken(address indexed who);
+    event ExchangeToken(address indexed who);
     event BuyTicket(address indexed who);
-    event Subscribe(address indexed who, uint256 since, uint256 to);
-    event Unsubscribe(address indexed who, uint256 since);
-    event DrawTicket(uint256 timestamp);
+    event Subscribe(address indexed who);
+    event Unsubscribe(address indexed who);
+    event DrawTicket(uint256 timestamp, uint8[TICKET_ELECTRONS] electrons);
 
     /**
      * 계약 생성자
@@ -107,6 +109,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         require(uint256(msg.value / 1 ether) * TOKEN_VALUE == _tokenAmount);
 
         token.transfer(msg.sender, _tokenAmount);
+        
+        emit BuyToken(msg.sender);
     }
 
     /**
@@ -121,6 +125,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         if (!msg.sender.send((_tokenAmount / TOKEN_VALUE) * 1 ether)) {
             revert();
         }
+        
+        emit ExchangeToken(msg.sender);
     }
 
     /**
@@ -155,6 +161,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         ticket.setElectrons(_electrons);
 
         cabinetList[cabinetIndex].addTicket(ticket);
+
+        emit BuyTicket(_target);
     }
 
     /**
@@ -171,6 +179,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         } else {
             userList[msg.sender].setSubscribeTo(userList[msg.sender].getSubscribeTo() + (SECONDS_OF_MONTH * _month));
         }
+
+        emit Subscribe(msg.sender);
     }
 
     /**
@@ -195,6 +205,8 @@ contract Etherotto is Ownable, EtherottoConfig {
         
         userList[_address] = user;
         numberOfSubscribers--;
+
+        emit Unsubscribe(msg.sender);
     }
 
     /**
@@ -271,8 +283,10 @@ contract Etherotto is Ownable, EtherottoConfig {
             totalTickets,
             drawerRewards
         );
-
+        
         resetRound();
+        
+        emit DrawTicket(uint256(now), drawElectrons);
     }
 
     function drawTicket(Ticket _ticket, uint8[TICKET_ELECTRONS] memory _drawElectrons) private view returns(uint8) {

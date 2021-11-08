@@ -1,0 +1,318 @@
+const core = new EtherottoCore();
+
+function unlockAccount() {
+    var address = document.getElementById("inputAddr").value;
+    var password = document.getElementById("InputPassword").value;
+
+    console.log("method: request: unlockAccount", address, password);
+    core.unlockAccount(address, password, (error, result) => {
+        console.log("method: done: unlockAccount", address, password, error, result);
+
+        if (!result) {
+            alert(error);
+        } else {
+            var contractAddr = document.getElementById("contractAddr");
+            var accountAddr = document.getElementById("accountAddr");
+
+            contractAddr.innerHTML = core.contractAddress;
+            accountAddr.innerHTML = address;
+        }
+    });
+}
+
+function buyToken() {
+    var address = document.getElementById("inputAddr").value;
+    var tokenAmount = document.getElementById("buy-token-amount").value;
+
+    console.log("method: request: buyToken", address, tokenAmount);
+    core.buyToken(address, tokenAmount, (error, result) => {
+        console.log("method: done: buyToken", address, tokenAmount, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            alert("구매되었습니다.");
+            // web3.js contract 이벤트 처리
+        }
+    });
+}
+
+function exchange() {
+    var address = document.getElementById("inputAddr").value;
+    var tokenAmount = document.getElementById("exchange-token-amount").value;
+
+    console.log("method: request: exchange", address, tokenAmount);
+    core.exchange(address, tokenAmount, (error, result) => {
+        console.log("method: done: exchange", address, tokenAmount, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            alert("환전되었습니다.");
+            // web3.js contract 이벤트 처리
+        }
+    });
+}
+
+function getTokenBalance() {
+    var address = document.getElementById("inputAddr").value;
+
+    console.log("method: request: getTokenBalance", address);
+    core.getTokenBalance(address, (error, result) => {
+        console.log("method: done: getTokenBalance", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            var myTokenBalance = document.getElementById("myTokenBalance");
+            myTokenBalance.innerHTML = result;
+        }
+    });
+}
+
+function getEtherBalance() {
+    var address = document.getElementById("inputAddr").value;
+    var myEtherBalance = document.getElementById("myEtherBalance");
+
+    console.log("method: request: getTokenBalance", address);
+    core.web3.eth.getBalance(address, (error, result) => {
+        console.log("method: done: getTokenBalance", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            myEtherBalance.innerHTML = result;
+        }
+    });
+}
+
+function buyTicket() {
+    var address = document.getElementById("inputAddr").value;
+    var electrons = [];
+
+    for (var i = 0; i < 7; i++) {
+        electrons[i] = parseInt(document.getElementsByName("basic-addon")[i].value);
+    }
+
+    console.log("method: request: buyTicket", address, electrons);
+    core.buyTicket(address, electrons, (error, result) => {
+        console.log("method: done: buyTicket", address, electrons, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+
+            let temp_html = `
+                <div class="card">
+                    <div class="card-body" id="my-manual-lottery-ticket-01">
+                        ${electrons}
+                        </div>
+                </div>
+                `;
+            $('#cards-box').append(temp_html);
+        }
+    });
+}
+
+function buyTicketAuto() {
+    var address = document.getElementById("inputAddr").value;
+    var ticket = ""
+    console.log("method: request: buyTicketAuto", address);
+    core.buyTicketAuto(address, (error, result) => {
+        console.log("method: done: buyTicketAuto", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+            ticket = getMyInfo();
+            console.log(ticket);
+            let temp_html = `
+                <div class="card">
+                    <div class="card-body" id="my-automatic-lottery-ticket-01">
+                        ${ticket}
+                        </div>
+                </div>
+                `;
+            $('#automatic-lottery-cards-box').append(temp_html);
+
+        }
+    });
+}
+
+function getSubscribeInfo() {
+    var address = document.getElementById("inputAddr").value;
+    var container = document.getElementById("subscribeInfoContainer");
+    var since = document.getElementById("subscribeSince");
+    var to = document.getElementById("subscribeTo");
+
+    console.log("method: done: getMyInfo", address);
+    core.getMyInfo(address, (error, result) => {
+        console.log("method: done: getMyInfo", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            try {
+                var json = JSON.parse(result);
+            } catch (error) {
+                alert(error);
+                throw error;
+            }
+
+            if (json.user.since > 0) {
+                since.innerText = new Date(json.user.since * 1000).toLocaleString();
+                to.innerText = new Date(json.user.to * 1000).toLocaleString();
+                container.style.display = "block";
+            } else {
+                container.style.display = "none";
+            }
+        }
+    });
+}
+
+// TODO:
+function subscribe() {
+    var address = document.getElementById("inputAddr").value;
+    var month = document.getElementById("subscribe-month").value;
+
+    console.log("method: request: subscribe", address, month);
+    core.subscribe(address, month, (error, result) => {
+        console.log("method: done: subscribe", address, month, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+        }
+    });
+}
+
+function unsubscribe() {
+    var address = document.getElementById("inputAddr").value;
+    var container = document.getElementById("subscribeInfoContainer");
+
+    console.log("method: request: unsubscribe", address);
+    core.unsubscribe(address, (error, result) => {
+        console.log("method: done: unsubscribe", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            container.style.display = "none";
+        }
+    });
+}
+
+function getRoundNumber() {
+    var address = document.getElementById("inputAddr").value;
+    console.log("method: request: getRoundNumber", address);
+
+    var round = -1;
+    try {
+        var result = core.getRoundNumber(address);
+        round = result.toNumber();
+    } catch (error) {
+        alert(error);
+    }
+    console.log("method: done: getRoundNumber", address, result);
+
+    if (round < 0) {
+        throw Exception("variable `round` is not valid");
+    }
+    
+    return round;
+}
+
+function getRoundInfo() {
+    var round = document.getElementById("round-query").value;
+
+    if (round <= 1) {
+        alert("아직 기록된 회차 정보가 없습니다.");
+        throw Exception("there's no round info yet.");
+    }
+
+    var address = document.getElementById("inputAddr").value;
+    var totalTokens = document.getElementById("totalTokens");
+    var totalTickets = document.getElementById("totalTickets");
+    var rewards = document.getElementById("rewards");
+
+    console.log("method: request: getRoundInfo", address, round);
+    core.getRoundInfo(address, round, (error, result) => {
+        console.log("method: done: getRoundInfo", address, round, error, result);
+        
+        if (error != null) {
+            alert(error);
+        } else {
+            try {
+                var json = JSON.parse(result);
+            } catch (error) {
+                alert(error);
+                throw error;
+            }
+
+            totalTokens.innerText = json.totalTokens;
+            totalTickets.innerText = json.totalTickets;
+            rewards.innerText = json.rewards;
+        }
+    });
+}
+
+var count = -1;
+
+function getMyInfo() {
+    var address = document.getElementById("inputAddr").value;
+    var round = getRoundNumber();
+    console.log("method: request: getMyInfo", address, round);
+
+        try {
+            count++;
+            var result = core.getMyInfo(address);
+            result = JSON.parse(result);
+            var electrons = result.cabinet.tickets[count].electrons;
+            console.log(electrons);
+        } catch (error) {
+            alert(error);
+        }
+        console.log("method: done: getMyInfo", address, round, result);
+        return electrons;
+
+}
+
+function paySubscribe() {
+    var address = document.getElementById("inputAddr").value;
+
+    console.log("method: request: paySubscribe", address);
+    core.paySubscribe(address, (error, result) => {
+        console.log("method: done: paySubscribe", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+        }
+    });
+}
+
+function drawTickets() {
+    var address = document.getElementById("inputAddr").value;
+    
+    console.log("method: request: drawTickets", address);
+    core.drawTickets(address, (error, result) => {
+        console.log("method: done: drawTickets", address, error, result);
+
+        if (error != null) {
+            alert(error);
+        } else {
+            // TODO: 요청 보낸 후 처리
+        }
+    });
+}
+
+jQuery(function () {
+    var roundInfo = document.getElementById("round-query");
+    var title = document.getElementById("currentRoundNum");
+    var round = getRoundNumber();
+    roundInfo.value = round;
+    title.innerText = round;
+});

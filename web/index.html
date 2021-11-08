@@ -1,15 +1,228 @@
 <html lang="ko">
 
 <head>
-    <title>Etherotto</title>
-    
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
     <script src="bower_components/web3/dist/web3.min.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="./core.js"></script>
+
+    <script src="./js/core.js"></script>
+    <script src="./js/ui.js"></script>
+    <link rel="stylesheet" href="style_sheet.css">
+
+    <title>Etherotto</title>
 </head>
 
 <body>
-    <!-- 페이지 구현 -->
+<h1 class="display-4">_Etherotto_ <span id="currentRoundNum"></span>회차</h1>
+<div class="wrap">
+    <div id="header">
+        <button class="btn btn-primary" id="win-btn" onclick="drawTickets()">추첨</button>
+        <div class="lottoNum" id="num1"></div>
+        <div class="lottoNum" id="num2"></div>
+        <div class="lottoNum" id="num3"></div>
+        <div class="lottoNum" id="num4"></div>
+        <div class="lottoNum" id="num5"></div>
+        <div class="lottoNum" id="num6"></div>
+        <div class="sign" id="plusSign">+</div>
+        <div class="lottoNum" id="num7"></div>
+    </div>
+
+    <div id="left-section">
+
+        <div id="unlock">
+            <h3>계정잠금해제</h3>
+            <div class="unlock-class" id="unlock-box">
+
+                <div class="form-group">
+                    <label>address</label>
+                    <input class="form-control" id="inputAddr" aria-describedby="emailHelp"
+                           placeholder="Enter address">
+                    <small class="form-text text-muted">본인의 계정 주소를 입력하세요.</small>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="InputPassword" placeholder="Password">
+                </div>
+
+
+                <button class="btn btn-primary" onclick="unlockAccount()">UNLOCK</button>
+            </div>
+        </div>
+        <div id="myInfo">
+            <h3>내 정보</h3>
+            <ul>
+                <li>컨트랙트 주소: <span id="contractAddr"></span></li>
+                <li>내 어카운트 주소: <span id="accountAddr"></span></li>
+                <li>나의 토큰 잔액: <span id="myTokenBalance"></span>
+                    <br>
+                    <button onclick="getTokenBalance()">토큰 잔액 확인하기</button>
+                </li>
+                </br>
+                <li>나의 이더 잔액: <span id="myEtherBalance"></span>
+                    <br>
+                    <button onclick="getEtherBalance()">이더 잔액 확인하기</button>
+                </li>
+                </br>
+            </ul>
+        </div>
+
+        <div id="subscribe">
+            <h3>구독 관리</h3>
+            <button type="button" class="btn btn-secondary" id="subscribe-info-btn" onclick="getSubscribeInfo()">구독정보</button>
+            <ul id="subscribeInfoContainer" style="display: none;">
+                <li><span id="subscribeSince"></span> 부터 구독</li>
+                <li><span id="subscribeTo"></span> 까지 유효</li>
+            </ul>
+
+            <h5>구독하기</h5>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">구독할 개월 수</span>
+                </div>
+                <input type="text" class="form-control" id="subscribe-month" placeholder="숫자로 입력하세요.">
+                <small class="form-text text-muted">예) 3개월 구독하려면 숫자 3을 입력하세요. </small>
+            </div>
+            <button type="button" class="btn btn-secondary" id="subscribe-btn" onclick="subscribe()">구독하기</button>
+
+            <br><br> <small class="form-text text-muted">현재 계정의 구독을 해제하려면 아래 버튼을 누르세요. </small>
+            <button type="button" class="btn btn-secondary" id="unsubscribe-btn" onclick="unsubscribe()">구독해제하기</button>
+
+        </div>
+
+    </div>
+
+    <div id="section">
+        <div id="my-manual-lottery-ticket">
+            <h3>나의 수동 복권</h3>
+            <div class="card" id="cards-box">
+
+            </div>
+
+
+        </div>
+
+        <div id="my-automatic-lottery-ticket">
+            <h3>나의 자동 복권</h3>
+            <div class="card" id="automatic-lottery-cards-box">
+
+            </div>
+        </div>
+
+
+    </div>
+
+    <div id="right-section">
+        <div id="round-info">
+            <h3>회차 정보 조회</h3>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">회차</span>
+                </div>
+                <input type="text" class="form-control" id="round-query">
+            </div>
+            <ul id="roundInfoContainer">
+                <li>토큰 수: <span id="totalTokens"></span></li>
+                <li>복권 수: <span id="totalTickets"></span></li>
+                <li>상금: <span id="rewards"></span></li>
+            </ul>
+            <button type="button" class="btn btn-secondary" id="round-info-btn" onclick="getRoundInfo()">새로고침</button>
+
+        </div>
+        <div id="buy-token">
+            <h3>구매(ether → token)</h3>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">구매할 token 수</span>
+                </div>
+                <input type="text" class="form-control" id="buy-token-amount">
+            </div>
+            <button type="button" class="btn btn-secondary" id="buy-token-btn" onclick="buyToken()">구매하기</button>
+
+        </div>
+
+        <div id="exchange">
+            <h3>환전(token → ether)</h3>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">환전할 token 수</span>
+                </div>
+                <input type="text" class="form-control" id="exchange-token-amount">
+            </div>
+            <button type="button" class="btn btn-secondary" id="exchange-btn" onclick="exchange()">환전하기</button>
+        </div>
+
+        <div id="buy-manual-lottery-ticket">
+            <h3>수동복권 구매</h3>
+            <div class="form-group">
+                <small class="form-text text-muted">구매하고자 하는 복권번호를 하나씩 입력하세요. </small> <br>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">번호 1 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요."
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon2">번호 2 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon3">번호 3 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon4">번호 4 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon5">번호 5 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon6">번호 6 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon7">보너스 번호 </span>
+                    <input type="text" class="form-control" name="basic-addon" placeholder="숫자로 입력하세요." aria-label="Username"
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="buy-manual-lottery-ticket-btn" onclick="buyTicket()">구매
+            </button>
+
+        </div>
+        <div id="buy-automatic-lottery-ticket">
+            <h3>자동복권 구매</h3>
+            <button type="button" class="btn btn-secondary" id="buy-automatic-lottery-ticket-btn"
+                    onclick="buyTicketAuto()">구매
+            </button>
+
+        </div>
+    </div>
+
+</div>
+
 </body>
 
 </html>
